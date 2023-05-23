@@ -1,0 +1,5 @@
+# Prepended configuration: first level key is an extension name.
+
+#ibexa:
+#    system:
+#        default:
