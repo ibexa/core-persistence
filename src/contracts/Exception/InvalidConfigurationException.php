@@ -11,7 +11,7 @@ namespace Ibexa\Contracts\CorePersistence\Exception;
 use Exception;
 use Throwable;
 
-class InvalidConfigurationException extends Exception
+final class InvalidConfigurationException extends Exception
 {
     public function __construct(string $message = '', int $code = 1, Throwable $previous = null)
     {
