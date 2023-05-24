@@ -87,12 +87,23 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                 ));
             }
 
-            return $this->handleRelationship(
-                $relationshipMetadata,
-                $relationship->getForeignKeyColumn(),
-                $foreignClassProperty,
-                $comparison->getValue(),
-            );
+            $relationshipType = get_class($relationship);
+
+            switch ($relationshipType) {
+                case DoctrineRelationship::class:
+                    return $this->handleRelationship(
+                        $relationshipMetadata,
+                        $relationship->getForeignKeyColumn(),
+                        $foreignClassProperty,
+                        $comparison->getValue(),
+                    );
+                case DoctrineOneToManyRelationship::class:
+                    return $this->handleOneToManyRelationship(
+                        $relationshipMetadata,
+                        $foreignClassProperty,
+                        $comparison->getValue(),
+                    );
+            }
         }
 
         if ($this->schemaMetadata->isTranslatedColumn($column)) {
@@ -211,6 +222,27 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     private function expr(): ExpressionBuilder
     {
         return $this->queryBuilder->expr();
+    }
+
+    private function handleOneToManyRelationship(
+        DoctrineSchemaMetadataInterface $relationshipMetadata,
+        string $field,
+        Value $value
+    ): string {
+        $tableName = $relationshipMetadata->getTableName();
+        $parameterName = $field . '_' . count($this->parameters);
+        $placeholder = ':' . $parameterName;
+
+        $value = $this->walkValue($value);
+        $type = $relationshipMetadata->getBindingTypeForColumn($field);
+        if (is_array($value)) {
+            $type += Connection::ARRAY_PARAM_OFFSET;
+        }
+
+        $parameter = new Parameter($parameterName, $value, $type);
+        $this->parameters[] = $parameter;
+
+        return $this->expr()->eq($tableName . '.' . $field, $placeholder);
     }
 
     private function handleRelationship(

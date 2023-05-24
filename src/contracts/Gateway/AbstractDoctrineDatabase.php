@@ -317,6 +317,18 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         return $qb->expr()->and(...$conditions);
     }
 
+    /**
+     * @param array<string, mixed> $result
+     *
+     * @return array<string, mixed>
+     */
+    final protected function convertSubsetToPhpValues(DoctrineSchemaMetadataInterface $metadata, array $result): array
+    {
+        $narrowedResult = array_intersect_key($result, array_flip($metadata->getColumns()));
+
+        return $metadata->convertToPHPValues($narrowedResult);
+    }
+
     protected function buildExpressionVisitor(QueryBuilder $qb): ExpressionVisitor
     {
         return new ExpressionVisitor(
