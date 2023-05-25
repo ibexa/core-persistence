@@ -11,7 +11,6 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 use Doctrine\Common\Collections\Expr\Expression;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Ibexa\CorePersistence\Gateway\DoctrineSchemaMetadataRegistry;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use InvalidArgumentException;
 
