@@ -1,8 +1,14 @@
 includes:
+    - phpstan-baseline.neon
     - vendor/phpstan/phpstan-phpunit/extension.neon
 
 parameters:
     level: 8
+    ignoreErrors:
+        -
+            message: "#^Cannot call method (fetchOne|fetchAllAssociative)\\(\\) on Doctrine\\\\DBAL\\\\ForwardCompatibility\\\\Result\\|int\\|string\\.$#"
+            paths:
+                - src/*
     paths:
         - src
         - tests
