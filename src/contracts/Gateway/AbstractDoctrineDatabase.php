@@ -30,7 +30,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
     private DoctrineSchemaMetadataInterface $metadata;
 
-    protected DoctrineSchemaMetadataRegistry $registry;
+    protected DoctrineSchemaMetadataRegistryInterface $registry;
 
     protected Connection $connection;
 
