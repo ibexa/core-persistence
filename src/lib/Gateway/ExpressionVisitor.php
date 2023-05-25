@@ -6,7 +6,7 @@
  */
 declare(strict_types=1);
 
-namespace Ibexa\Contracts\CorePersistence\Gateway;
+namespace Ibexa\CorePersistence\Gateway;
 
 use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\Common\Collections\Expr\CompositeExpression;
@@ -16,6 +16,10 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\Expression\CompositeExpression as DBALCompositeExpression;
 use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
 use RuntimeException;
 
 /**
@@ -33,17 +37,17 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     private string $tableAlias;
 
-    /** @var list<\Ibexa\Contracts\CorePersistence\Gateway\Parameter> */
+    /** @var list<\Ibexa\CorePersistence\Gateway\Parameter> */
     private array $parameters = [];
 
-    private DoctrineSchemaMetadataRegistry $registry;
+    private DoctrineSchemaMetadataRegistryInterface $registry;
 
     /**
      * @param non-empty-string $tableName
      */
     public function __construct(
         QueryBuilder $queryBuilder,
-        DoctrineSchemaMetadataRegistry $registry,
+        DoctrineSchemaMetadataRegistryInterface $registry,
         string $tableName,
         string $tableAlias
     ) {
@@ -54,7 +58,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     }
 
     /**
-     * @return list<\Ibexa\Contracts\CorePersistence\Gateway\Parameter>
+     * @return list<\Ibexa\CorePersistence\Gateway\Parameter>
      */
     public function getParameters(): array
     {

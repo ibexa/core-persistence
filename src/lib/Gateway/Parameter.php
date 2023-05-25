@@ -6,7 +6,7 @@
  */
 declare(strict_types=1);
 
-namespace Ibexa\Contracts\CorePersistence\Gateway;
+namespace Ibexa\CorePersistence\Gateway;
 
 /**
  * @internal
