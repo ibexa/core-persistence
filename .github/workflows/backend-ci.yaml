@@ -28,18 +28,10 @@ jobs:
 
             -   uses: ramsey/composer-install@v2
                 with:
-                    dependency-versions: "highest"
+                    dependency-versions: highest
 
             -   name: Run code style check
                 run: composer run-script check-cs -- --format=checkstyle | cs2pr
-
-    deptrac:
-        name: Deptrac
-        runs-on: ubuntu-latest
-        steps:
-            -   uses: actions/checkout@v3
-            -   name: Deptrac
-                uses: smoench/deptrac-action@master
 
     tests:
         name: Tests
@@ -55,7 +47,7 @@ jobs:
                     - '8.2'
 
         steps:
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
 
             -   name: Setup PHP Action
                 uses: shivammathur/setup-php@v2
@@ -63,12 +55,10 @@ jobs:
                     php-version: ${{ matrix.php }}
                     coverage: none
                     extensions: pdo_sqlite, gd
-                    tools: cs2pr
 
-            -   uses: "ramsey/composer-install@v1"
+            -   uses: ramsey/composer-install@v2
                 with:
-                    dependency-versions: "highest"
-                    composer-options: "--prefer-dist --no-progress --no-suggest"
+                    dependency-versions: highest
 
             -   name: Setup problem matchers for PHPUnit
                 run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"

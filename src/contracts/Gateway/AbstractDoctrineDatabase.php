@@ -11,6 +11,7 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 use Doctrine\Common\Collections\Expr\Expression;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use InvalidArgumentException;
 
 /**
@@ -28,11 +29,11 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
     private DoctrineSchemaMetadataInterface $metadata;
 
-    protected DoctrineSchemaMetadataRegistry $registry;
+    protected DoctrineSchemaMetadataRegistryInterface $registry;
 
     protected Connection $connection;
 
-    public function __construct(Connection $connection, DoctrineSchemaMetadataRegistry $registry)
+    public function __construct(Connection $connection, DoctrineSchemaMetadataRegistryInterface $registry)
     {
         $this->connection = $connection;
         $this->registry = $registry;

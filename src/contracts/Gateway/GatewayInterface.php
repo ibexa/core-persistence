@@ -20,7 +20,7 @@ interface GatewayInterface
     public function countAll(): int;
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<\Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>> $criteria
      */
     public function countBy($criteria): int;
 
@@ -30,7 +30,7 @@ interface GatewayInterface
     public function findAll(?int $limit = null, int $offset = 0): array;
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria Map of column names to values that will be used as part of WHERE query
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<\Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria Map of column names to values that will be used as part of WHERE query
      * @param array<string, string>|null $orderBy Map of column names to "ASC" or "DESC", that will be used in SORT query
      *
      * @phpstan-param array<string, "ASC"|"DESC">|null $orderBy

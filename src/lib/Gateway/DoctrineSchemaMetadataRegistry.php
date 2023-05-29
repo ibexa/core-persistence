@@ -6,14 +6,14 @@
  */
 declare(strict_types=1);
 
-namespace Ibexa\Contracts\CorePersistence\Gateway;
+namespace Ibexa\CorePersistence\Gateway;
 
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
+use Ibexa\Contracts\CorePersistence\Gateway\TranslationDoctrineSchemaMetadataInterface;
 use LogicException;
 
-/**
- * @internal
- */
-final class DoctrineSchemaMetadataRegistry
+final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegistryInterface
 {
     /** @var array<class-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface> */
     private array $metadata;
@@ -87,9 +87,6 @@ final class DoctrineSchemaMetadataRegistry
         $this->initialized = true;
     }
 
-    /**
-     * @return array<class-string>
-     */
     public function getAvailableMetadata(): array
     {
         $this->ensureInitialized();
@@ -97,9 +94,6 @@ final class DoctrineSchemaMetadataRegistry
         return array_keys($this->metadata);
     }
 
-    /**
-     * @param class-string $className
-     */
     public function getMetadata(string $className): DoctrineSchemaMetadataInterface
     {
         $this->ensureInitialized();
@@ -107,9 +101,6 @@ final class DoctrineSchemaMetadataRegistry
         return $this->metadata[$className];
     }
 
-    /**
-     * @param class-string $className
-     */
     public function getTranslationMetadata(string $className): TranslationDoctrineSchemaMetadataInterface
     {
         $this->ensureInitialized();
@@ -117,12 +108,17 @@ final class DoctrineSchemaMetadataRegistry
         return $this->translationMetadata[$className];
     }
 
-    /**
-     * @param non-empty-string $tableName
-     */
     public function getMetadataForTable(string $tableName): DoctrineSchemaMetadataInterface
     {
         $this->ensureInitialized();
+
+        if (!isset($this->tableToMetadata[$tableName])) {
+            throw new LogicException(sprintf(
+                'Failed to find metadata for table "%s". Did you forget to tag your gateway with "%s" tag?',
+                $tableName,
+                'ibexa.product_catalog.common.doctrine_gateway',
+            ));
+        }
 
         return $this->tableToMetadata[$tableName];
     }
