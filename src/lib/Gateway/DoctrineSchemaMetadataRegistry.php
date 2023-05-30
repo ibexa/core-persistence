@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Ibexa\CorePersistence\Gateway;
 
+use Ibexa\Bundle\CorePersistence\DependencyInjection\IbexaCorePersistenceExtension;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\TranslationDoctrineSchemaMetadataInterface;
@@ -116,7 +117,7 @@ final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegi
             throw new LogicException(sprintf(
                 'Failed to find metadata for table "%s". Did you forget to tag your gateway with "%s" tag?',
                 $tableName,
-                'ibexa.product_catalog.common.doctrine_gateway',
+                IbexaCorePersistenceExtension::TAG_DOCTRINE_GATEWAY,
             ));
         }
 

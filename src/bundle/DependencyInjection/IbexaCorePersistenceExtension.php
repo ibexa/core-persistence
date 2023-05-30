@@ -16,6 +16,8 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 final class IbexaCorePersistenceExtension extends Extension
 {
+    public const TAG_DOCTRINE_GATEWAY = 'ibexa.core_persistence.doctrine_gateway';
+
     /**
      * @param array<string, mixed> $configs
      */
@@ -29,6 +31,6 @@ final class IbexaCorePersistenceExtension extends Extension
         $loader->load('services.yaml');
 
         $container->registerForAutoconfiguration(GatewayInterface::class)
-            ->addTag('ibexa.core_persistence.doctrine_gateway');
+            ->addTag(self::TAG_DOCTRINE_GATEWAY);
     }
 }
