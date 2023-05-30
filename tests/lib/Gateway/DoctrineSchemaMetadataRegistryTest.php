@@ -21,7 +21,7 @@ final class DoctrineSchemaMetadataRegistryTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(
             'Failed to find metadata for table "foo". '
-            . 'Did you forget to tag your gateway with "ibexa.product_catalog.common.doctrine_gateway" tag?'
+            . 'Did you forget to tag your gateway with "ibexa.core_persistence.doctrine_gateway" tag?'
         );
 
         $registry->getMetadataForTable('foo');
