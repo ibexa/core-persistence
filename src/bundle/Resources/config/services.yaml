@@ -7,4 +7,4 @@ services:
 
     Ibexa\CorePersistence\Gateway\DoctrineSchemaMetadataRegistry:
         arguments:
-            $gateways: !tagged_iterator 'ibexa.core_persistence.doctrine_gateway'
+            $gateways: !tagged_iterator 'ibexa.core.persistence.doctrine_gateway'
