@@ -14,14 +14,14 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 interface DoctrineSchemaMetadataRegistryInterface
 {
     /**
-     * @return array<class-string>
+     * @phpstan-return array<class-string|non-empty-string>
      */
     public function getAvailableMetadata(): array;
 
     /**
-     * @param class-string $className
+     * @phpstan-param non-empty-string|class-string $classOrTableName
      */
-    public function getMetadata(string $className): DoctrineSchemaMetadataInterface;
+    public function getMetadata(string $classOrTableName): DoctrineSchemaMetadataInterface;
 
     /**
      * @param class-string $className
@@ -32,4 +32,9 @@ interface DoctrineSchemaMetadataRegistryInterface
      * @param non-empty-string $tableName
      */
     public function getMetadataForTable(string $tableName): DoctrineSchemaMetadataInterface;
+
+    /**
+     * @param class-string $className
+     */
+    public function getMetadataForClass(string $className): DoctrineSchemaMetadataInterface;
 }
