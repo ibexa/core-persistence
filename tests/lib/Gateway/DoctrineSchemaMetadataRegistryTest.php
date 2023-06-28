@@ -30,7 +30,7 @@ final class DoctrineSchemaMetadataRegistryTest extends TestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(
-            'Failed to find classToMetadata for table "nonexistent". '
+            'Failed to find metadata for table "nonexistent". '
             . 'Did you forget to tag your gateway with "ibexa.core.persistence.doctrine_gateway" tag?'
         );
 
@@ -41,7 +41,7 @@ final class DoctrineSchemaMetadataRegistryTest extends TestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(
-            'Failed to find classToMetadata for class "stdClass". '
+            'Failed to find metadata for class "stdClass". '
             . 'Did you forget to tag your gateway with "ibexa.core.persistence.doctrine_gateway" tag?'
         );
 
@@ -52,7 +52,7 @@ final class DoctrineSchemaMetadataRegistryTest extends TestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(
-            'Failed to find classToMetadata for table or class "nonexistent". '
+            'Failed to find metadata for table or class "nonexistent". '
             . 'Did you forget to tag your gateway with "ibexa.core.persistence.doctrine_gateway" tag?'
         );
 
