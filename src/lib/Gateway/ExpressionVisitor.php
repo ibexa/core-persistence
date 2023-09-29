@@ -13,7 +13,6 @@ use Doctrine\Common\Collections\Expr\CompositeExpression;
 use Doctrine\Common\Collections\Expr\ExpressionVisitor as BaseExpressionVisitor;
 use Doctrine\Common\Collections\Expr\Value;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Query\Expression\CompositeExpression as DBALCompositeExpression;
 use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
@@ -197,7 +196,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         return $value->getValue();
     }
 
-    public function walkCompositeExpression(CompositeExpression $expr): DBALCompositeExpression
+    public function walkCompositeExpression(CompositeExpression $expr): string
     {
         $expressionList = [];
         foreach ($expr->getExpressionList() as $child) {
@@ -206,12 +205,17 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
         switch ($expr->getType()) {
             case CompositeExpression::TYPE_AND:
-                return $this->expr()->and(...$expressionList);
+                return (string)$this->expr()->and(...$expressionList);
 
             case CompositeExpression::TYPE_OR:
-                return $this->expr()->or(...$expressionList);
+                return (string)$this->expr()->or(...$expressionList);
 
             default:
+                // Multiversion support for `doctrine/collections` before and after v2.1.0
+                if (defined(CompositeExpression::class . '::TYPE_NOT') && $expr->getType() === CompositeExpression::TYPE_NOT) {
+                    return $this->queryBuilder->getConnection()->getDatabasePlatform()->getNotExpression($expressionList[0]);
+                }
+
                 throw new RuntimeException('Unknown composite ' . $expr->getType());
         }
     }
