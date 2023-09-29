@@ -210,12 +210,10 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             case CompositeExpression::TYPE_OR:
                 return (string)$this->expr()->or(...$expressionList);
 
-            default:
-                // Multiversion support for `doctrine/collections` before and after v2.1.0
-                if (defined(CompositeExpression::class . '::TYPE_NOT') && $expr->getType() === CompositeExpression::TYPE_NOT) {
-                    return $this->queryBuilder->getConnection()->getDatabasePlatform()->getNotExpression($expressionList[0]);
-                }
+            case 'NOT':
+                return $this->queryBuilder->getConnection()->getDatabasePlatform()->getNotExpression($expressionList[0]);
 
+            default:
                 throw new RuntimeException('Unknown composite ' . $expr->getType());
         }
     }
