@@ -48,7 +48,12 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     /**
      * @var array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface>
      */
-    private array $relationshipColumns = [];
+    private array $propertyToRelationship = [];
+
+    /**
+     * @var array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface>
+     */
+    private array $columnToRelationship = [];
 
     /** @var class-string|null */
     private ?string $className;
@@ -364,33 +369,56 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     public function addRelationship(DoctrineRelationshipInterface $relationship): void
     {
         $foreignProperty = $relationship->getForeignProperty();
-
-        if (isset($this->relationshipColumns[$foreignProperty])) {
-            throw new \LogicException(sprintf(
+        if (isset($this->propertyToRelationship[$foreignProperty])) {
+            throw new LogicException(sprintf(
                 '"%s" is already added as foreign property.',
                 $foreignProperty,
             ));
         }
 
-        $this->relationshipColumns[$foreignProperty] = $relationship;
+        $this->propertyToRelationship[$foreignProperty] = $relationship;
+
+        $foreignColumn = $relationship->getForeignKeyColumn();
+        if (isset($this->columnToRelationship[$foreignColumn])) {
+            throw new LogicException(sprintf(
+                '"%s" is already added as foreign column.',
+                $foreignColumn,
+            ));
+        }
+
+        $this->columnToRelationship[$foreignColumn] = $relationship;
     }
 
     public function getRelationships(): array
     {
-        return $this->relationshipColumns;
+        return $this->propertyToRelationship;
     }
 
-    public function getRelationshipByForeignKeyColumn(string $foreignProperty): DoctrineRelationshipInterface
+    public function getRelationshipByForeignProperty(string $foreignProperty): DoctrineRelationshipInterface
     {
-        if (!isset($this->relationshipColumns[$foreignProperty])) {
+        if (!isset($this->propertyToRelationship[$foreignProperty])) {
             throw new InvalidArgumentException(sprintf(
-                '"%s" does not exist as a relationship for "%s" class metadata. Available relationship: "%s"',
+                '"%s" does not exist as a relationship for "%s" class metadata. Available relationship property: "%s"',
                 $foreignProperty,
                 $this->className,
-                implode('", "', array_keys($this->relationshipColumns)),
+                implode('", "', array_keys($this->propertyToRelationship)),
             ));
         }
 
-        return $this->relationshipColumns[$foreignProperty];
+        return $this->propertyToRelationship[$foreignProperty];
+    }
+
+    public function getRelationshipByForeignColumn(string $foreignColumn): DoctrineRelationshipInterface
+    {
+        if (!isset($this->columnToRelationship[$foreignColumn])) {
+            throw new InvalidArgumentException(sprintf(
+                '"%s" does not exist as a relationship for "%s" class metadata. Available relationship columns: "%s"',
+                $foreignColumn,
+                $this->className,
+                implode('", "', array_keys($this->columnToRelationship)),
+            ));
+        }
+
+        return $this->columnToRelationship[$foreignColumn];
     }
 }

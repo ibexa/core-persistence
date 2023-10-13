@@ -19,6 +19,7 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
+use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -79,10 +80,10 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                 $foreignClassProperty,
             ] = explode('.', $column, 2);
 
-            $relationship = $this->schemaMetadata->getRelationshipByForeignKeyColumn($foreignProperty);
+            $relationship = $this->schemaMetadata->getRelationshipByForeignProperty($foreignProperty);
             $relationshipMetadata = $this->registry->getMetadata($relationship->getRelationshipClass());
             if (!$relationshipMetadata->hasColumn($foreignClassProperty)) {
-                throw new \InvalidArgumentException(sprintf(
+                throw new InvalidArgumentException(sprintf(
                     '"%s" does not exist as available column on "%s" class schema metadata. Available columns: "%s".',
                     $foreignClassProperty,
                     $relationshipMetadata->getClassName(),

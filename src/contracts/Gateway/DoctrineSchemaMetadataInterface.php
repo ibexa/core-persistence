@@ -120,5 +120,7 @@ interface DoctrineSchemaMetadataInterface
      */
     public function getRelationships(): array;
 
-    public function getRelationshipByForeignKeyColumn(string $foreignProperty): DoctrineRelationshipInterface;
+    public function getRelationshipByForeignProperty(string $foreignProperty): DoctrineRelationshipInterface;
+
+    public function getRelationshipByForeignColumn(string $foreignColumn): DoctrineRelationshipInterface;
 }
