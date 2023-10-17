@@ -10,7 +10,7 @@ namespace Ibexa\Contracts\CorePersistence\Exception;
 
 use Exception;
 
-final class MappingException extends Exception
+final class MappingException extends Exception implements MappingExceptionInterface
 {
     public static function singleIdNotAllowedOnCompositePrimaryKey(): self
     {

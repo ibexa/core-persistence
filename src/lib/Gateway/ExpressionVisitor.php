@@ -15,6 +15,7 @@ use Doctrine\Common\Collections\Expr\Value;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
@@ -70,6 +71,9 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         $this->parameters = [];
     }
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     */
     public function walkComparison(Comparison $comparison)
     {
         $column = $comparison->getField();
@@ -83,7 +87,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             $relationship = $this->schemaMetadata->getRelationshipByForeignProperty($foreignProperty);
             $relationshipMetadata = $this->registry->getMetadata($relationship->getRelationshipClass());
             if (!$relationshipMetadata->hasColumn($foreignClassProperty)) {
-                throw new InvalidArgumentException(sprintf(
+                throw new RuntimeMappingException(sprintf(
                     '"%s" does not exist as available column on "%s" class schema metadata. Available columns: "%s".',
                     $foreignClassProperty,
                     $relationshipMetadata->getClassName(),
@@ -107,11 +111,25 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                         $foreignClassProperty,
                         $comparison->getValue(),
                     );
+                default:
+                    throw new RuntimeMappingException(sprintf(
+                        'Unhandled relationship metadata. Expected one of "%s". Received "%s".',
+                        implode('", "', [DoctrineRelationship::class, DoctrineOneToManyRelationship::class]),
+                        $relationshipType,
+                    ));
             }
         }
 
         if ($this->schemaMetadata->isTranslatedColumn($column)) {
             return $this->handleTranslation($comparison);
+        }
+
+        if (!$this->schemaMetadata->hasColumn($column)) {
+            throw new RuntimeMappingException(sprintf(
+                '%s table metadata does not contain %s column.',
+                $this->schemaMetadata->getTableName(),
+                $column,
+            ));
         }
 
         $parameterName = $column . '_' . count($this->parameters);
