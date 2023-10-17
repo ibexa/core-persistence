@@ -154,5 +154,5 @@ interface DoctrineSchemaMetadataInterface
     /**
      * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
      */
-    public function getRelationshipByForeignColumn(string $foreignColumn): DoctrineRelationshipInterface;
+    public function getRelationshipByForeignKeyColumn(string $foreignColumn): DoctrineRelationshipInterface;
 }

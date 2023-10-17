@@ -400,7 +400,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
         return $this->propertyToRelationship[$foreignProperty];
     }
 
-    public function getRelationshipByForeignColumn(string $foreignColumn): DoctrineRelationshipInterface
+    public function getRelationshipByForeignKeyColumn(string $foreignColumn): DoctrineRelationshipInterface
     {
         if (!isset($this->columnToRelationship[$foreignColumn])) {
             throw new RuntimeMappingException(sprintf(

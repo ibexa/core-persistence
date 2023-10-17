@@ -34,7 +34,7 @@ final class DoctrineSchemaMetadataTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('"foo" does not exist as a relationship for "stdClass" class metadata. Available relationship columns: ""');
-        $this->metadata->getRelationshipByForeignColumn('foo');
+        $this->metadata->getRelationshipByForeignKeyColumn('foo');
     }
 
     public function testGetRelationshipByForeignPropertyWithoutRelationships(): void
@@ -49,7 +49,7 @@ final class DoctrineSchemaMetadataTest extends TestCase
         $relationship = $this->getFooRelationship();
         $this->metadata->addRelationship($relationship);
 
-        $result = $this->metadata->getRelationshipByForeignColumn('foo_column');
+        $result = $this->metadata->getRelationshipByForeignKeyColumn('foo_column');
         self::assertSame($relationship, $result);
     }
 
