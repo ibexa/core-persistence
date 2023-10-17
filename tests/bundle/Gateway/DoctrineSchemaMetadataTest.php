@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Ibexa\Tests\Bundle\CorePersistence\Gateway;
 
+use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadata;
 use PHPUnit\Framework\TestCase;
@@ -32,14 +33,14 @@ final class DoctrineSchemaMetadataTest extends TestCase
 
     public function testGetRelationshipByForeignColumnWithoutRelationships(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RuntimeMappingExceptionInterface::class);
         $this->expectExceptionMessage('"foo" does not exist as a relationship for "stdClass" class metadata. Available relationship columns: ""');
         $this->metadata->getRelationshipByForeignKeyColumn('foo');
     }
 
     public function testGetRelationshipByForeignPropertyWithoutRelationships(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RuntimeMappingExceptionInterface::class);
         $this->expectExceptionMessage('"foo" does not exist as a relationship for "stdClass" class metadata. Available relationship property: ""');
         $this->metadata->getRelationshipByForeignProperty('foo');
     }
