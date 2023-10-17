@@ -20,8 +20,10 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
+use Ibexa\Contracts\CorePersistence\Gateway\PreJoinedDoctrineRelationship;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\Parameter;
+use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\TestCase;
 
 final class ExpressionVisitorTest extends TestCase
@@ -176,6 +178,7 @@ final class ExpressionVisitorTest extends TestCase
         $this->expectException(RuntimeMappingExceptionInterface::class);
         $this->expectExceptionMessage(
             'Unhandled relationship metadata. Expected one of '
+            . '"Ibexa\Contracts\CorePersistence\Gateway\PreJoinedDoctrineRelationship", '
             . '"Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship", '
             . '"Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship". '
             . 'Received "' . get_class($doctrineRelationship) . '"'
@@ -221,7 +224,10 @@ final class ExpressionVisitorTest extends TestCase
         );
     }
 
-    public function testFieldFromInheritedRelationship(): void
+    /**
+     * @dataProvider provideForFieldFromInheritedRelationship
+     */
+    public function testFieldFromInheritedRelationship(Comparison $comparison, string $expectedResult): void
     {
         /** @var class-string $relationshipClass pretend it's a class-string */
         $relationshipClass = 'relationship_class';
@@ -245,9 +251,94 @@ final class ExpressionVisitorTest extends TestCase
             ->with($relationshipClass)
             ->willReturn($relationshipMetadata);
 
-        $result = $this->expressionVisitor->dispatch(new Comparison('relationship_1.field', '=', 'value'));
+        $result = $this->expressionVisitor->dispatch($comparison);
         self::assertSame(
+            $expectedResult,
+            $result,
+        );
+    }
+
+    /**
+     * @return iterable<array{\Doctrine\Common\Collections\Expr\Comparison, non-empty-string}>
+     */
+    public static function provideForFieldFromInheritedRelationship(): iterable
+    {
+        yield [
+            new Comparison('relationship_1.field', '=', 'value'),
             'relationship_table_name.field = :field_0',
+        ];
+
+        yield [
+            new Comparison('relationship_1.field', 'IN', ['value', 'value_2']),
+            'relationship_table_name.field IN (:field_0)',
+        ];
+
+        yield [
+            new Comparison('relationship_1.field', '=', ['value', 'value_2']),
+            'relationship_table_name.field IN (:field_0)',
+        ];
+    }
+
+    public function testQueryThroughMultipleRelationships(): void
+    {
+        /** @var class-string $relationshipClass pretend it's a class-string */
+        $relationshipClass = 'relationship_1_class';
+        $doctrineRelationship1 = new PreJoinedDoctrineRelationship(
+            $relationshipClass,
+            'relationship_1',
+            'relationship_1_id',
+            'id'
+        );
+
+        $this->schemaMetadata
+            ->expects(self::once())
+            ->method('getRelationshipByForeignProperty')
+            ->with('relationship_1')
+            ->willReturn($doctrineRelationship1);
+
+        $relationshipMetadata1 = $this->createRelationshipSchemaMetadata();
+
+        /** @var class-string $relationshipClass pretend it's a class-string */
+        $relationshipClass = 'relationship_2_class';
+        $doctrineRelationship2 = new PreJoinedDoctrineRelationship(
+            $relationshipClass,
+            'relationship_2',
+            'relationship_2_id',
+            'id'
+        );
+
+        $relationshipMetadata2 = $this->createRelationshipSchemaMetadata('relationship_2_table_name');
+
+        $relationshipMetadata1
+            ->expects(self::once())
+            ->method('getRelationshipByForeignProperty')
+            ->with('relationship_2')
+            ->willReturn($doctrineRelationship2);
+
+        $this->registry
+            ->expects(self::exactly(2))
+            ->method('getMetadata')
+            ->with(
+                self::logicalOr(
+                    self::identicalTo('relationship_1_class'),
+                    self::identicalTo('relationship_2_class'),
+                ),
+            )
+            ->willReturnCallback(static function (string $class) use ($relationshipMetadata1, $relationshipMetadata2): DoctrineSchemaMetadataInterface {
+                if ($class === 'relationship_1_class') {
+                    return $relationshipMetadata1;
+                }
+
+                if ($class === 'relationship_2_class') {
+                    return $relationshipMetadata2;
+                }
+
+                self::fail('Invalid class passed to "getMetadata"');
+            });
+
+        $result = $this->expressionVisitor->dispatch(new Comparison('relationship_1.relationship_2.field', '=', 'value'));
+        self::assertSame(
+            'relationship_2_table_name.field = :field_0',
             $result,
         );
     }
@@ -279,7 +370,10 @@ final class ExpressionVisitorTest extends TestCase
         );
     }
 
-    private function createRelationshipSchemaMetadata(): DoctrineSchemaMetadataInterface
+    /**
+     * @return \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface|\PHPUnit\Framework\MockObject\MockObject
+     */
+    private function createRelationshipSchemaMetadata(string $tableName = 'relationship_table_name'): DoctrineSchemaMetadataInterface
     {
         $relationshipMetadata = $this->createMock(DoctrineSchemaMetadataInterface::class);
         $relationshipMetadata
@@ -289,7 +383,7 @@ final class ExpressionVisitorTest extends TestCase
 
         $relationshipMetadata
             ->method('getTableName')
-            ->willReturn('relationship_table_name');
+            ->willReturn($tableName);
 
         $relationshipMetadata
             ->method('getIdentifierColumn')
@@ -304,13 +398,12 @@ final class ExpressionVisitorTest extends TestCase
      */
     private function configureFieldInMetadata(DoctrineSchemaMetadataInterface $metadata, array $fields): void
     {
-        $fields = array_map('preg_quote', $fields);
-        $regexp = sprintf('~^(%s)$~', implode('|', $fields));
-
         $metadata
             ->expects(self::atLeastOnce())
             ->method('hasColumn')
-            ->with(self::matchesRegularExpression($regexp))
+            ->with(self::logicalOr(
+                ...array_map(static fn (string $fieldName): IsIdentical => self::identicalTo($fieldName), $fields),
+            ))
             ->willReturn(true);
     }
 }

@@ -18,8 +18,10 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
+use Ibexa\Contracts\CorePersistence\Gateway\PreJoinedDoctrineRelationship;
 use RuntimeException;
 
 /**
@@ -85,18 +87,41 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
             $relationship = $this->schemaMetadata->getRelationshipByForeignProperty($foreignProperty);
             $relationshipMetadata = $this->registry->getMetadata($relationship->getRelationshipClass());
+
+            while (str_contains($foreignClassProperty, '.')) {
+                [
+                    $foreignProperty,
+                    $foreignClassProperty,
+                ] = explode('.', $foreignClassProperty, 2);
+
+                $relationship = $relationshipMetadata->getRelationshipByForeignProperty($foreignProperty);
+                $relationshipMetadata = $this->registry->getMetadata($relationship->getRelationshipClass());
+            }
+
             if (!$relationshipMetadata->hasColumn($foreignClassProperty)) {
                 throw new RuntimeMappingException(sprintf(
-                    '"%s" does not exist as available column on "%s" class schema metadata. Available columns: "%s".',
+                    '"%s" does not exist as available column on "%s" class schema metadata. '
+                    . 'Available columns: "%s". Available relationships: "%s"',
                     $foreignClassProperty,
                     $relationshipMetadata->getClassName(),
                     implode('", "', $relationshipMetadata->getColumns()),
+                    implode('", "', array_map(
+                        static fn (DoctrineRelationshipInterface $relationship): string => $relationship->getForeignProperty(),
+                        $relationshipMetadata->getRelationships(),
+                    )),
                 ));
             }
 
             $relationshipType = get_class($relationship);
 
             switch ($relationshipType) {
+                case DoctrineOneToManyRelationship::class:
+                case PreJoinedDoctrineRelationship::class:
+                    return $this->handleOneToManyRelationship(
+                        $relationshipMetadata,
+                        $foreignClassProperty,
+                        $comparison->getValue(),
+                    );
                 case DoctrineRelationship::class:
                     return $this->handleRelationship(
                         $relationshipMetadata,
@@ -104,16 +129,14 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                         $foreignClassProperty,
                         $comparison->getValue(),
                     );
-                case DoctrineOneToManyRelationship::class:
-                    return $this->handleOneToManyRelationship(
-                        $relationshipMetadata,
-                        $foreignClassProperty,
-                        $comparison->getValue(),
-                    );
                 default:
                     throw new RuntimeMappingException(sprintf(
                         'Unhandled relationship metadata. Expected one of "%s". Received "%s".',
-                        implode('", "', [DoctrineRelationship::class, DoctrineOneToManyRelationship::class]),
+                        implode('", "', [
+                            PreJoinedDoctrineRelationship::class,
+                            DoctrineRelationship::class,
+                            DoctrineOneToManyRelationship::class,
+                        ]),
                         $relationshipType,
                     ));
             }
@@ -265,6 +288,10 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
         $parameter = new Parameter($parameterName, $value, $type);
         $this->parameters[] = $parameter;
+
+        if (is_array($value)) {
+            return $this->expr()->in($tableName . '.' . $field, $placeholder);
+        }
 
         return $this->expr()->eq($tableName . '.' . $field, $placeholder);
     }

@@ -1,6 +1,2 @@
 parameters:
-	ignoreErrors:
-		-
-			message: "#^Method Ibexa\\\\Contracts\\\\CorePersistence\\\\Gateway\\\\DoctrineOneToManyRelationship\\:\\:getForeignKeyColumn\\(\\) should return non\\-empty\\-string but returns ''\\.$#"
-			count: 1
-			path: src/contracts/Gateway/DoctrineOneToManyRelationship.php
+	ignoreErrors: []
