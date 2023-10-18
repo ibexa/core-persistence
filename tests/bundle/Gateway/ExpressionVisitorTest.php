@@ -252,6 +252,33 @@ final class ExpressionVisitorTest extends TestCase
         );
     }
 
+    public function testFieldFromSubclass(): void
+    {
+        $this->schemaMetadata
+            ->expects(self::exactly(2))
+            ->method('isInheritedColumn')
+            ->with('inherited_field')
+            ->willReturn(true);
+
+        $inheritanceMetadata = $this->createMock(DoctrineSchemaMetadataInterface::class);
+        $this->schemaMetadata
+            ->expects(self::once())
+            ->method('getInheritanceMetadataWithColumn')
+            ->with('inherited_field')
+            ->willReturn($inheritanceMetadata);
+
+        $inheritanceMetadata
+            ->expects(self::once())
+            ->method('getTableName')
+            ->willReturn('inheritance_table');
+
+        $result = $this->expressionVisitor->dispatch(new Comparison('inherited_field', '=', 'value'));
+        self::assertSame(
+            'inheritance_table.inherited_field = :inherited_field_0',
+            $result,
+        );
+    }
+
     private function createRelationshipSchemaMetadata(): DoctrineSchemaMetadataInterface
     {
         $relationshipMetadata = $this->createMock(DoctrineSchemaMetadataInterface::class);

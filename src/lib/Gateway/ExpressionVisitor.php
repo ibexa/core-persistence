@@ -123,7 +123,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             return $this->handleTranslation($comparison);
         }
 
-        if (!$this->schemaMetadata->hasColumn($column)) {
+        if (!$this->schemaMetadata->hasColumn($column) && !$this->schemaMetadata->isInheritedColumn($column)) {
             throw new RuntimeMappingException(sprintf(
                 '%s table metadata does not contain %s column.',
                 $this->schemaMetadata->getTableName(),
