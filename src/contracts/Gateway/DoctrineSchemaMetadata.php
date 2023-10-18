@@ -371,6 +371,10 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
         $this->propertyToRelationship[$foreignProperty] = $relationship;
 
         $foreignColumn = $relationship->getForeignKeyColumn();
+        if ($foreignColumn === $this->getIdentifierColumn()) {
+            return;
+        }
+
         if (isset($this->columnToRelationship[$foreignColumn])) {
             throw new MappingException(sprintf(
                 '"%s" is already added as foreign column.',
