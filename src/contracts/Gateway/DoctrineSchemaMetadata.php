@@ -11,9 +11,7 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Type;
 use Ibexa\Contracts\CorePersistence\Exception\MappingException;
-use InvalidArgumentException;
-use LogicException;
-use RuntimeException;
+use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 
 /**
  * @internal
@@ -48,7 +46,12 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     /**
      * @var array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface>
      */
-    private array $relationshipColumns = [];
+    private array $propertyToRelationship = [];
+
+    /**
+     * @var array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface>
+     */
+    private array $columnToRelationship = [];
 
     /** @var class-string|null */
     private ?string $className;
@@ -116,9 +119,6 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
         return $this->columnTypeCache[$column];
     }
 
-    /**
-     * @throws \Doctrine\DBAL\Exception
-     */
     private function resolveColumnType(string $column): Type
     {
         if (isset($this->columnToTypesMap[$column])) {
@@ -167,7 +167,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
             );
         }
 
-        throw new InvalidArgumentException(sprintf(
+        throw new RuntimeMappingException(sprintf(
             'Column "%s" does not exist in "%s" table. Available columns: "%s"',
             $column,
             $this->getTableName(),
@@ -206,9 +206,6 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
         return $this->getInheritanceMetadataWithColumn($column) !== null;
     }
 
-    /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
-     */
     public function getIdentifierColumn(): string
     {
         if (count($this->identifierColumns) > 1) {
@@ -288,7 +285,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     public function getTranslationSchemaMetadata(): TranslationDoctrineSchemaMetadataInterface
     {
         if (!isset($this->translationMetadata)) {
-            throw new LogicException(sprintf(
+            throw new RuntimeMappingException(sprintf(
                 '%s does not contain translation metadata. Ensure that %1$s::%s has been called.',
                 DoctrineSchemaMetadata::class,
                 'setTranslationSchemaMetadata',
@@ -316,7 +313,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     public function getSubclassByDiscriminator(string $discriminator): DoctrineSchemaMetadataInterface
     {
         if (empty($this->discriminatorMap)) {
-            throw new RuntimeException(sprintf(
+            throw new RuntimeMappingException(sprintf(
                 '"%s" is not registered as a subclass for table "%s". There are no registered subclasses',
                 $discriminator,
                 $this->getTableName(),
@@ -324,7 +321,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
         }
 
         if (!isset($this->discriminatorMap[$discriminator])) {
-            throw new RuntimeException(sprintf(
+            throw new RuntimeMappingException(sprintf(
                 '"%s" is not registered as a subclass for table "%s". Available discriminators: "%s"',
                 $discriminator,
                 $this->getTableName(),
@@ -347,7 +344,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     {
         $this->inheritanceType = self::INHERITANCE_TYPE_JOINED;
         if (isset($this->discriminatorMap[$discriminator])) {
-            throw new LogicException(sprintf(
+            throw new MappingException(sprintf(
                 '"%s" is already added as a discriminator for a subtype.',
                 $discriminator,
             ));
@@ -364,33 +361,56 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     public function addRelationship(DoctrineRelationshipInterface $relationship): void
     {
         $foreignProperty = $relationship->getForeignProperty();
-
-        if (isset($this->relationshipColumns[$foreignProperty])) {
-            throw new \LogicException(sprintf(
+        if (isset($this->propertyToRelationship[$foreignProperty])) {
+            throw new MappingException(sprintf(
                 '"%s" is already added as foreign property.',
                 $foreignProperty,
             ));
         }
 
-        $this->relationshipColumns[$foreignProperty] = $relationship;
+        $this->propertyToRelationship[$foreignProperty] = $relationship;
+
+        $foreignColumn = $relationship->getForeignKeyColumn();
+        if (isset($this->columnToRelationship[$foreignColumn])) {
+            throw new MappingException(sprintf(
+                '"%s" is already added as foreign column.',
+                $foreignColumn,
+            ));
+        }
+
+        $this->columnToRelationship[$foreignColumn] = $relationship;
     }
 
     public function getRelationships(): array
     {
-        return $this->relationshipColumns;
+        return $this->propertyToRelationship;
     }
 
-    public function getRelationshipByForeignKeyColumn(string $foreignProperty): DoctrineRelationshipInterface
+    public function getRelationshipByForeignProperty(string $foreignProperty): DoctrineRelationshipInterface
     {
-        if (!isset($this->relationshipColumns[$foreignProperty])) {
-            throw new InvalidArgumentException(sprintf(
-                '"%s" does not exist as a relationship for "%s" class metadata. Available relationship: "%s"',
+        if (!isset($this->propertyToRelationship[$foreignProperty])) {
+            throw new RuntimeMappingException(sprintf(
+                '"%s" does not exist as a relationship for "%s" class metadata. Available relationship property: "%s"',
                 $foreignProperty,
                 $this->className,
-                implode('", "', array_keys($this->relationshipColumns)),
+                implode('", "', array_keys($this->propertyToRelationship)),
             ));
         }
 
-        return $this->relationshipColumns[$foreignProperty];
+        return $this->propertyToRelationship[$foreignProperty];
+    }
+
+    public function getRelationshipByForeignKeyColumn(string $foreignColumn): DoctrineRelationshipInterface
+    {
+        if (!isset($this->columnToRelationship[$foreignColumn])) {
+            throw new RuntimeMappingException(sprintf(
+                '"%s" does not exist as a relationship for "%s" class metadata. Available relationship columns: "%s"',
+                $foreignColumn,
+                $this->className,
+                implode('", "', array_keys($this->columnToRelationship)),
+            ));
+        }
+
+        return $this->columnToRelationship[$foreignColumn];
     }
 }

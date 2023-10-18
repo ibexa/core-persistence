@@ -34,6 +34,9 @@ interface DoctrineSchemaMetadataInterface
      */
     public function getTableName(): string;
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     */
     public function getColumnType(string $column): Type;
 
     /**
@@ -43,6 +46,9 @@ interface DoctrineSchemaMetadataInterface
 
     public function hasColumn(string $column): bool;
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     */
     public function getColumn(string $column): string;
 
     public function getInheritanceMetadataWithColumn(string $column): ?self;
@@ -70,6 +76,8 @@ interface DoctrineSchemaMetadataInterface
      * @param array<string, mixed> $data
      *
      * @return array<string, mixed>
+     *
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
      */
     public function convertToDatabaseValues(array $data): array;
 
@@ -77,6 +85,8 @@ interface DoctrineSchemaMetadataInterface
      * @param array<string, mixed> $data
      *
      * @return array<string, int>
+     *
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
      */
     public function getBindingTypesForData(array $data): array;
 
@@ -87,9 +97,13 @@ interface DoctrineSchemaMetadataInterface
 
     /**
      * @throws \Doctrine\DBAL\Exception
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
      */
     public function getBindingTypeForColumn(string $columnName): int;
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     */
     public function setParentMetadata(self $parentMetadata): void;
 
     public function getParentMetadata(): ?self;
@@ -101,18 +115,30 @@ interface DoctrineSchemaMetadataInterface
      */
     public function getSubclasses(): array;
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     */
     public function addSubclass(string $discriminator, self $doctrineSchemaMetadata): void;
 
     public function isInheritanceTypeJoined(): bool;
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     */
     public function setTranslationSchemaMetadata(TranslationDoctrineSchemaMetadataInterface $translationMetadata): void;
 
     public function hasTranslationSchemaMetadata(): bool;
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     */
     public function getTranslationSchemaMetadata(): TranslationDoctrineSchemaMetadataInterface;
 
     public function isTranslatedColumn(string $column): bool;
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     */
     public function addRelationship(DoctrineRelationshipInterface $relationship): void;
 
     /**
@@ -120,5 +146,13 @@ interface DoctrineSchemaMetadataInterface
      */
     public function getRelationships(): array;
 
-    public function getRelationshipByForeignKeyColumn(string $foreignProperty): DoctrineRelationshipInterface;
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     */
+    public function getRelationshipByForeignProperty(string $foreignProperty): DoctrineRelationshipInterface;
+
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     */
+    public function getRelationshipByForeignKeyColumn(string $foreignColumn): DoctrineRelationshipInterface;
 }
