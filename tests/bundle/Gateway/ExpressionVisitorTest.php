@@ -31,7 +31,7 @@ final class ExpressionVisitorTest extends TestCase
     /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface&\PHPUnit\Framework\MockObject\MockObject */
     private DoctrineSchemaMetadataRegistryInterface $registry;
 
-    /** @var DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject */
     private DoctrineSchemaMetadataInterface $schemaMetadata;
 
     private QueryBuilder $queryBuilder;
@@ -299,7 +299,7 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @param DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject $metadata
+     * @param \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject $metadata
      * @param array<string> $fields
      */
     private function configureFieldInMetadata(DoctrineSchemaMetadataInterface $metadata, array $fields): void
