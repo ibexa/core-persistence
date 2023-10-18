@@ -31,7 +31,7 @@ final class ExpressionVisitorTest extends TestCase
     /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface&\PHPUnit\Framework\MockObject\MockObject */
     private DoctrineSchemaMetadataRegistryInterface $registry;
 
-    /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject */
     private DoctrineSchemaMetadataInterface $schemaMetadata;
 
     private QueryBuilder $queryBuilder;
@@ -252,6 +252,33 @@ final class ExpressionVisitorTest extends TestCase
         );
     }
 
+    public function testFieldFromSubclass(): void
+    {
+        $this->schemaMetadata
+            ->expects(self::exactly(2))
+            ->method('isInheritedColumn')
+            ->with('inherited_field')
+            ->willReturn(true);
+
+        $inheritanceMetadata = $this->createMock(DoctrineSchemaMetadataInterface::class);
+        $this->schemaMetadata
+            ->expects(self::once())
+            ->method('getInheritanceMetadataWithColumn')
+            ->with('inherited_field')
+            ->willReturn($inheritanceMetadata);
+
+        $inheritanceMetadata
+            ->expects(self::once())
+            ->method('getTableName')
+            ->willReturn('inheritance_table');
+
+        $result = $this->expressionVisitor->dispatch(new Comparison('inherited_field', '=', 'value'));
+        self::assertSame(
+            'inheritance_table.inherited_field = :inherited_field_0',
+            $result,
+        );
+    }
+
     private function createRelationshipSchemaMetadata(): DoctrineSchemaMetadataInterface
     {
         $relationshipMetadata = $this->createMock(DoctrineSchemaMetadataInterface::class);
@@ -272,7 +299,7 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @param \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject $metadata
+     * @param DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject $metadata
      * @param array<string> $fields
      */
     private function configureFieldInMetadata(DoctrineSchemaMetadataInterface $metadata, array $fields): void
