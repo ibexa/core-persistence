@@ -115,17 +115,17 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             $relationshipType = get_class($relationship);
 
             switch ($relationshipType) {
-                case DoctrineOneToManyRelationship::class:
-                case PreJoinedDoctrineRelationship::class:
-                    return $this->handleOneToManyRelationship(
-                        $relationshipMetadata,
-                        $foreignClassProperty,
-                        $comparison->getValue(),
-                    );
                 case DoctrineRelationship::class:
                     return $this->handleRelationship(
                         $relationshipMetadata,
                         $relationship->getForeignKeyColumn(),
+                        $foreignClassProperty,
+                        $comparison->getValue(),
+                    );
+                case DoctrineOneToManyRelationship::class:
+                case PreJoinedDoctrineRelationship::class:
+                    return $this->handleOneToManyRelationship(
+                        $relationshipMetadata,
                         $foreignClassProperty,
                         $comparison->getValue(),
                     );
