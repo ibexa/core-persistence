@@ -52,10 +52,10 @@ final class FooGateway extends AbstractDoctrineDatabase
             ['id'],
         );
 
-        /** @var class-string $relationshipClass */
-        $relationshipClass = 'Relationship1Class';
+        /** @var class-string $relationship1Class */
+        $relationship1Class = 'Relationship1Class';
         $metadata->addRelationship(new DoctrineRelationship(
-            $relationshipClass,
+            $relationship1Class,
             'relationship_1',
             'relationship_1_id',
             'id',

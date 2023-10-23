@@ -26,13 +26,11 @@ if (getenv('DATABASE_URL') !== false && 'sqlite' !== substr(getenv('DATABASE_URL
         'command' => 'doctrine:database:drop',
         '--if-exists' => '1',
         '--force' => '1',
-        '--quiet' => true,
     ]));
 }
 
 $application->run(new ArrayInput([
     'command' => 'doctrine:database:create',
-    '--quiet' => true,
 ]));
 
 /** @var \Psr\Container\ContainerInterface $testContainer */
