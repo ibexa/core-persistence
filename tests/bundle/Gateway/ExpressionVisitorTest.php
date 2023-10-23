@@ -20,7 +20,6 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
-use Ibexa\Contracts\CorePersistence\Gateway\PreJoinedDoctrineRelationship;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\Parameter;
 use PHPUnit\Framework\Constraint\IsIdentical;
@@ -178,7 +177,6 @@ final class ExpressionVisitorTest extends TestCase
         $this->expectException(RuntimeMappingExceptionInterface::class);
         $this->expectExceptionMessage(
             'Unhandled relationship metadata. Expected one of '
-            . '"Ibexa\Contracts\CorePersistence\Gateway\PreJoinedDoctrineRelationship", '
             . '"Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship", '
             . '"Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship". '
             . 'Received "' . get_class($doctrineRelationship) . '"'
@@ -283,11 +281,12 @@ final class ExpressionVisitorTest extends TestCase
     {
         /** @var class-string $relationshipClass pretend it's a class-string */
         $relationshipClass = 'relationship_1_class';
-        $doctrineRelationship1 = new PreJoinedDoctrineRelationship(
+        $doctrineRelationship1 = new DoctrineRelationship(
             $relationshipClass,
             'relationship_1',
             'relationship_1_id',
-            'id'
+            'id',
+            DoctrineRelationship::JOIN_TYPE_JOINED,
         );
 
         $this->schemaMetadata
@@ -300,11 +299,12 @@ final class ExpressionVisitorTest extends TestCase
 
         /** @var class-string $relationshipClass pretend it's a class-string */
         $relationshipClass = 'relationship_2_class';
-        $doctrineRelationship2 = new PreJoinedDoctrineRelationship(
+        $doctrineRelationship2 = new DoctrineRelationship(
             $relationshipClass,
             'relationship_2',
             'relationship_2_id',
-            'id'
+            'id',
+            DoctrineRelationship::JOIN_TYPE_JOINED,
         );
 
         $relationshipMetadata2 = $this->createRelationshipSchemaMetadata('relationship_2_table_name');

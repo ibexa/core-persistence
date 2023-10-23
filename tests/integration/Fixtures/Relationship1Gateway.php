@@ -10,9 +10,9 @@ namespace Ibexa\Tests\Integration\CorePersistence\Fixtures;
 
 use Doctrine\DBAL\Types\Types;
 use Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadata;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
-use Ibexa\Contracts\CorePersistence\Gateway\PreJoinedDoctrineRelationship;
 
 /**
  * @phpstan-extends \Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase<array{
@@ -48,11 +48,12 @@ final class Relationship1Gateway extends AbstractDoctrineDatabase
 
         /** @var class-string $relationshipClass */
         $relationshipClass = 'Relationship2Class';
-        $metadata->addRelationship(new PreJoinedDoctrineRelationship(
+        $metadata->addRelationship(new DoctrineRelationship(
             $relationshipClass,
             'relationship_2',
             'relationship_2_id',
             'id',
+            DoctrineRelationship::JOIN_TYPE_JOINED,
         ));
 
         return $metadata;

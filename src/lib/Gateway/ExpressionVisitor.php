@@ -21,7 +21,6 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
-use Ibexa\Contracts\CorePersistence\Gateway\PreJoinedDoctrineRelationship;
 use RuntimeException;
 
 /**
@@ -247,16 +246,15 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
         $relationshipType = get_class($relationship);
 
-        switch ($relationshipType) {
-            case DoctrineRelationship::class:
+        switch (true) {
+            case $relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_SUB_SELECT:
                 return $this->handleSubSelectQuery(
                     $metadata,
                     $relationship->getForeignKeyColumn(),
                     $column,
                     $comparison->getValue(),
                 );
-            case DoctrineOneToManyRelationship::class:
-            case PreJoinedDoctrineRelationship::class:
+            case $relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_JOINED:
                 return $this->handleJoinQuery(
                     $metadata,
                     $column,
@@ -266,7 +264,6 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                 throw new RuntimeMappingException(sprintf(
                     'Unhandled relationship metadata. Expected one of "%s". Received "%s".',
                     implode('", "', [
-                        PreJoinedDoctrineRelationship::class,
                         DoctrineRelationship::class,
                         DoctrineOneToManyRelationship::class,
                     ]),

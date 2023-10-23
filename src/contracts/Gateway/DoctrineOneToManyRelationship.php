@@ -31,4 +31,14 @@ final class DoctrineOneToManyRelationship extends AbstractDoctrineRelationship
     {
         throw new LogicException('Intentionally not implemented.');
     }
+
+    public function setJoinType(string $joinType): void
+    {
+        throw new LogicException('Intentionally not implemented.');
+    }
+
+    public function getJoinType(): string
+    {
+        return DoctrineRelationship::JOIN_TYPE_JOINED;
+    }
 }

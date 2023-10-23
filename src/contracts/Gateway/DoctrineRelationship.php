@@ -13,21 +13,47 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
  */
 final class DoctrineRelationship extends AbstractDoctrineRelationship
 {
+    public const JOIN_TYPE_SUB_SELECT = 'subselect';
+
+    public const JOIN_TYPE_JOINED = 'joined';
+
+    /** @phpstan-var self::JOIN_TYPE_* */
+    private string $joinType;
+
     /**
-     * @param class-string $relationshipClass
-     * @param non-empty-string $foreignProperty
-     * @param non-empty-string $foreignKeyColumn
-     * @param non-empty-string $relatedClassIdColumn
+     * @phpstan-param class-string $relationshipClass
+     * @phpstan-param non-empty-string $foreignProperty
+     * @phpstan-param non-empty-string $foreignKeyColumn
+     * @phpstan-param non-empty-string $relatedClassIdColumn
+     * @phpstan-param self::JOIN_TYPE_* $joinType
      */
     public function __construct(
         string $relationshipClass,
         string $foreignProperty,
         string $foreignKeyColumn,
-        string $relatedClassIdColumn
+        string $relatedClassIdColumn,
+        string $joinType = self::JOIN_TYPE_SUB_SELECT
     ) {
         $this->relationshipClass = $relationshipClass;
         $this->foreignProperty = $foreignProperty;
         $this->foreignKeyColumn = $foreignKeyColumn;
         $this->relatedClassIdColumn = $relatedClassIdColumn;
+        $this->setJoinType($joinType);
+    }
+
+    /**
+     * @phpstan-param self::JOIN_TYPE_* $joinType
+     */
+    public function setJoinType(string $joinType): void
+    {
+        $this->joinType = $joinType;
+    }
+
+    /**
+     * @phpstan-return self::JOIN_TYPE_*
+     */
+    public function getJoinType(): string
+    {
+        return $this->joinType;
     }
 }
