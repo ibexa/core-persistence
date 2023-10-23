@@ -215,26 +215,27 @@ final class ExpressionVisitor extends BaseExpressionVisitor
      */
     private function handleRelationshipComparison(string $column, Comparison $comparison): string
     {
+        $metadata = $this->schemaMetadata;
         do {
             [
                 $foreignProperty,
                 $column,
             ] = explode(self::RELATIONSHIP_DELIMITER, $column, 2);
 
-            $relationship = $this->schemaMetadata->getRelationshipByForeignProperty($foreignProperty);
-            $relationshipMetadata = $this->registry->getMetadata($relationship->getRelationshipClass());
+            $relationship = $metadata->getRelationshipByForeignProperty($foreignProperty);
+            $metadata = $this->registry->getMetadata($relationship->getRelationshipClass());
         } while ($this->containsRelationshipDelimiter($column));
 
-        if (!$relationshipMetadata->hasColumn($column)) {
+        if (!$metadata->hasColumn($column)) {
             throw new RuntimeMappingException(sprintf(
                 '"%s" does not exist as available column on "%s" class schema metadata. '
                 . 'Available columns: "%s". Available relationships: "%s"',
                 $column,
-                $relationshipMetadata->getClassName(),
-                implode('", "', $relationshipMetadata->getColumns()),
+                $metadata->getClassName(),
+                implode('", "', $metadata->getColumns()),
                 implode('", "', array_map(
                     static fn (DoctrineRelationshipInterface $relationship): string => $relationship->getForeignProperty(),
-                    $relationshipMetadata->getRelationships(),
+                    $metadata->getRelationships(),
                 )),
             ));
         }
@@ -244,7 +245,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         switch ($relationshipType) {
             case DoctrineRelationship::class:
                 return $this->handleSubSelectQuery(
-                    $relationshipMetadata,
+                    $metadata,
                     $relationship->getForeignKeyColumn(),
                     $column,
                     $comparison->getValue(),
@@ -252,7 +253,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             case DoctrineOneToManyRelationship::class:
             case PreJoinedDoctrineRelationship::class:
                 return $this->handleJoinQuery(
-                    $relationshipMetadata,
+                    $metadata,
                     $column,
                     $comparison->getValue(),
                 );
