@@ -10,6 +10,7 @@ namespace Ibexa\Tests\Integration\CorePersistence\Fixtures;
 
 use Doctrine\DBAL\Types\Types;
 use Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadata;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
@@ -59,6 +60,14 @@ final class FooGateway extends AbstractDoctrineDatabase
             'relationship_1_id',
             'id',
             DoctrineRelationship::JOIN_TYPE_JOINED,
+        ));
+
+        /** @var class-string $relationship3Class */
+        $relationship3Class = 'Relationship3Class';
+        $metadata->addRelationship(new DoctrineOneToManyRelationship(
+            $relationship3Class,
+            'relationship_3',
+            'id',
         ));
 
         return $metadata;
