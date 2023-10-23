@@ -15,6 +15,9 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
  */
 interface GatewayInterface
 {
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     */
     public function getMetadata(): DoctrineSchemaMetadataInterface;
 
     public function countAll(): int;
