@@ -79,6 +79,8 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     /**
      * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     *
+     * @return mixed
      */
     public function walkComparison(Comparison $comparison)
     {
@@ -178,6 +180,9 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function walkValue(Value $value)
     {
         return $value->getValue();

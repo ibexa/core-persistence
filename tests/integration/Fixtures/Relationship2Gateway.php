@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @copyright Copyright (C) Ibexa AS. All rights reserved.
+ * @license For full copyright and license information view LICENSE file distributed with this source code.
+ */
+declare(strict_types=1);
+
 namespace Ibexa\Tests\Integration\CorePersistence\Fixtures;
 
 use Doctrine\DBAL\Types\Types;
@@ -15,7 +21,6 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
  */
 final class Relationship2Gateway extends AbstractDoctrineDatabase
 {
-
     protected function getTableName(): string
     {
         return 'relationship_2_table_name';
