@@ -29,7 +29,7 @@ final class DoctrineOneToManyRelationship extends AbstractDoctrineRelationship
 
     public function getForeignKeyColumn(): string
     {
-        throw new LogicException('Intentionally not implemented.');
+        return '';
     }
 
     public function setJoinType(string $joinType): void
