@@ -11,55 +11,49 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 /**
  * @internal
  */
-final class DoctrineRelationship implements DoctrineRelationshipInterface
+final class DoctrineRelationship extends AbstractDoctrineRelationship
 {
-    /** @var class-string */
-    private string $relationshipClass;
+    public const JOIN_TYPE_SUB_SELECT = 'subselect';
 
-    /** @var non-empty-string */
-    private string $foreignProperty;
+    public const JOIN_TYPE_JOINED = 'joined';
 
-    /** @var non-empty-string */
-    private string $foreignKeyColumn;
-
-    /** @var non-empty-string */
-    private string $relatedClassIdColumn;
+    /** @phpstan-var self::JOIN_TYPE_* */
+    private string $joinType;
 
     /**
-     * @param class-string $relationshipClass
-     * @param non-empty-string $foreignProperty
-     * @param non-empty-string $foreignKeyColumn
-     * @param non-empty-string $relatedClassIdColumn
+     * @phpstan-param class-string $relationshipClass
+     * @phpstan-param non-empty-string $foreignProperty
+     * @phpstan-param non-empty-string $foreignKeyColumn
+     * @phpstan-param non-empty-string $relatedClassIdColumn
+     * @phpstan-param self::JOIN_TYPE_* $joinType
      */
     public function __construct(
         string $relationshipClass,
         string $foreignProperty,
         string $foreignKeyColumn,
-        string $relatedClassIdColumn
+        string $relatedClassIdColumn,
+        string $joinType = self::JOIN_TYPE_SUB_SELECT
     ) {
         $this->relationshipClass = $relationshipClass;
         $this->foreignProperty = $foreignProperty;
         $this->foreignKeyColumn = $foreignKeyColumn;
         $this->relatedClassIdColumn = $relatedClassIdColumn;
+        $this->setJoinType($joinType);
     }
 
-    public function getRelationshipClass(): string
+    /**
+     * @phpstan-param self::JOIN_TYPE_* $joinType
+     */
+    public function setJoinType(string $joinType): void
     {
-        return $this->relationshipClass;
+        $this->joinType = $joinType;
     }
 
-    public function getRelatedClassIdColumn(): string
+    /**
+     * @phpstan-return self::JOIN_TYPE_*
+     */
+    public function getJoinType(): string
     {
-        return $this->relatedClassIdColumn;
-    }
-
-    public function getForeignProperty(): string
-    {
-        return $this->foreignProperty;
-    }
-
-    public function getForeignKeyColumn(): string
-    {
-        return $this->foreignKeyColumn;
+        return $this->joinType;
     }
 }

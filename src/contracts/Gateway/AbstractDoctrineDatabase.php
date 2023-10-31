@@ -49,6 +49,9 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         return $this->getTableName();
     }
 
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     */
     abstract protected function buildMetadata(): DoctrineSchemaMetadataInterface;
 
     public function getMetadata(): DoctrineSchemaMetadataInterface

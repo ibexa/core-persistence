@@ -32,4 +32,8 @@ interface DoctrineRelationshipInterface
      * @return non-empty-string
      */
     public function getForeignKeyColumn(): string;
+
+    public function setJoinType(string $joinType): void;
+
+    public function getJoinType(): string;
 }

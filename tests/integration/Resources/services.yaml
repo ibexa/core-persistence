@@ -1,0 +1,11 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Ibexa\Tests\Integration\CorePersistence\Fixtures\FooGateway: ~
+
+    Ibexa\Tests\Integration\CorePersistence\Fixtures\Relationship1Gateway: ~
+
+    Ibexa\Tests\Integration\CorePersistence\Fixtures\Relationship2Gateway: ~

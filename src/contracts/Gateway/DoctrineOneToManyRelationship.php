@@ -8,17 +8,10 @@ declare(strict_types=1);
 
 namespace Ibexa\Contracts\CorePersistence\Gateway;
 
-final class DoctrineOneToManyRelationship implements DoctrineRelationshipInterface
+use LogicException;
+
+final class DoctrineOneToManyRelationship extends AbstractDoctrineRelationship
 {
-    /** @var class-string */
-    private string $relationshipClass;
-
-    /** @var non-empty-string */
-    private string $foreignProperty;
-
-    /** @var non-empty-string */
-    private string $relatedClassIdColumn;
-
     /**
      * @param class-string $relationshipClass
      * @param non-empty-string $foreignProperty
@@ -34,23 +27,18 @@ final class DoctrineOneToManyRelationship implements DoctrineRelationshipInterfa
         $this->relatedClassIdColumn = $relatedClassIdColumn;
     }
 
-    public function getRelationshipClass(): string
-    {
-        return $this->relationshipClass;
-    }
-
-    public function getRelatedClassIdColumn(): string
-    {
-        return $this->relatedClassIdColumn;
-    }
-
-    public function getForeignProperty(): string
-    {
-        return $this->foreignProperty;
-    }
-
     public function getForeignKeyColumn(): string
     {
         return '';
+    }
+
+    public function setJoinType(string $joinType): void
+    {
+        throw new LogicException('Intentionally not implemented.');
+    }
+
+    public function getJoinType(): string
+    {
+        return DoctrineRelationship::JOIN_TYPE_JOINED;
     }
 }

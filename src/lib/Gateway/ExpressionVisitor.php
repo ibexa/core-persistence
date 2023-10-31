@@ -18,6 +18,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
 use RuntimeException;
@@ -30,6 +31,11 @@ use RuntimeException;
 final class ExpressionVisitor extends BaseExpressionVisitor
 {
     private const TRANSLATION_TABLE_ALIAS = 'translation';
+
+    /**
+     * Indicates that comparison should expand into a query against a table with relation to the current table.
+     */
+    public const RELATIONSHIP_DELIMITER = '.';
 
     private QueryBuilder $queryBuilder;
 
@@ -72,51 +78,15 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     /**
      * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     *
+     * @return mixed
      */
     public function walkComparison(Comparison $comparison)
     {
         $column = $comparison->getField();
 
-        if (str_contains($column, '.')) {
-            [
-                $foreignProperty,
-                $foreignClassProperty,
-            ] = explode('.', $column, 2);
-
-            $relationship = $this->schemaMetadata->getRelationshipByForeignProperty($foreignProperty);
-            $relationshipMetadata = $this->registry->getMetadata($relationship->getRelationshipClass());
-            if (!$relationshipMetadata->hasColumn($foreignClassProperty)) {
-                throw new RuntimeMappingException(sprintf(
-                    '"%s" does not exist as available column on "%s" class schema metadata. Available columns: "%s".',
-                    $foreignClassProperty,
-                    $relationshipMetadata->getClassName(),
-                    implode('", "', $relationshipMetadata->getColumns()),
-                ));
-            }
-
-            $relationshipType = get_class($relationship);
-
-            switch ($relationshipType) {
-                case DoctrineRelationship::class:
-                    return $this->handleRelationship(
-                        $relationshipMetadata,
-                        $relationship->getForeignKeyColumn(),
-                        $foreignClassProperty,
-                        $comparison->getValue(),
-                    );
-                case DoctrineOneToManyRelationship::class:
-                    return $this->handleOneToManyRelationship(
-                        $relationshipMetadata,
-                        $foreignClassProperty,
-                        $comparison->getValue(),
-                    );
-                default:
-                    throw new RuntimeMappingException(sprintf(
-                        'Unhandled relationship metadata. Expected one of "%s". Received "%s".',
-                        implode('", "', [DoctrineRelationship::class, DoctrineOneToManyRelationship::class]),
-                        $relationshipType,
-                    ));
-            }
+        if ($this->containsRelationshipDelimiter($column)) {
+            return $this->handleRelationshipComparison($column, $comparison);
         }
 
         if ($this->schemaMetadata->isTranslatedColumn($column)) {
@@ -209,6 +179,9 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function walkValue(Value $value)
     {
         return $value->getValue();
@@ -236,6 +209,69 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         }
     }
 
+    private function containsRelationshipDelimiter(string $column): bool
+    {
+        return str_contains($column, self::RELATIONSHIP_DELIMITER);
+    }
+
+    /**
+     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     */
+    private function handleRelationshipComparison(string $column, Comparison $comparison): string
+    {
+        $metadata = $this->schemaMetadata;
+        do {
+            [
+                $foreignProperty,
+                $column,
+            ] = explode(self::RELATIONSHIP_DELIMITER, $column, 2);
+
+            $relationship = $metadata->getRelationshipByForeignProperty($foreignProperty);
+            $metadata = $this->registry->getMetadata($relationship->getRelationshipClass());
+        } while ($this->containsRelationshipDelimiter($column));
+
+        if (!$metadata->hasColumn($column)) {
+            throw new RuntimeMappingException(sprintf(
+                '"%s" does not exist as available column on "%s" class schema metadata. '
+                . 'Available columns: "%s". Available relationships: "%s"',
+                $column,
+                $metadata->getClassName(),
+                implode('", "', $metadata->getColumns()),
+                implode('", "', array_map(
+                    static fn (DoctrineRelationshipInterface $relationship): string => $relationship->getForeignProperty(),
+                    $metadata->getRelationships(),
+                )),
+            ));
+        }
+
+        $relationshipType = get_class($relationship);
+
+        switch (true) {
+            case $relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_SUB_SELECT:
+                return $this->handleSubSelectQuery(
+                    $metadata,
+                    $relationship->getForeignKeyColumn(),
+                    $column,
+                    $comparison->getValue(),
+                );
+            case $relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_JOINED:
+                return $this->handleJoinQuery(
+                    $metadata,
+                    $column,
+                    $comparison->getValue(),
+                );
+            default:
+                throw new RuntimeMappingException(sprintf(
+                    'Unhandled relationship metadata. Expected one of "%s". Received "%s".',
+                    implode('", "', [
+                        DoctrineRelationship::class,
+                        DoctrineOneToManyRelationship::class,
+                    ]),
+                    $relationshipType,
+                ));
+        }
+    }
+
     private function escapeSpecialSQLValues(Parameter $parameter): string
     {
         $platform = $this->queryBuilder->getConnection()->getDatabasePlatform();
@@ -248,7 +284,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         return $this->queryBuilder->expr();
     }
 
-    private function handleOneToManyRelationship(
+    private function handleJoinQuery(
         DoctrineSchemaMetadataInterface $relationshipMetadata,
         string $field,
         Value $value
@@ -266,10 +302,14 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         $parameter = new Parameter($parameterName, $value, $type);
         $this->parameters[] = $parameter;
 
+        if (is_array($value)) {
+            return $this->expr()->in($tableName . '.' . $field, $placeholder);
+        }
+
         return $this->expr()->eq($tableName . '.' . $field, $placeholder);
     }
 
-    private function handleRelationship(
+    private function handleSubSelectQuery(
         DoctrineSchemaMetadataInterface $relationshipMetadata,
         string $foreignField,
         string $field,
