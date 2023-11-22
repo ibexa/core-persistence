@@ -48,16 +48,38 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
         $this->expressionVisitor->dispatch(new Comparison('non_existent_field', '=', 'bar'));
     }
 
-    public function testTraversingRelationships(): void
+    /**
+     * @dataProvider provideForTraversingRelationships
+     */
+    public function testTraversingRelationships(Comparison $expr, string $expectedResult): void
     {
         // Note: This assumes relationship tables are joined before being used.
-        $expr = new Comparison(
-            'relationship_1.relationship_2.relationship_2_foo',
-            'IN',
-            'bar',
-        );
         $result = $this->expressionVisitor->dispatch($expr);
-        self::assertSame('relationship_2_table_name.relationship_2_foo = :relationship_2_foo_0', $result);
+        self::assertSame($expectedResult, $result);
+    }
+
+    /**
+     * @return iterable<array{\Doctrine\Common\Collections\Expr\Comparison, non-empty-string}>
+     */
+    public static function provideForTraversingRelationships(): iterable
+    {
+        yield [
+            new Comparison(
+                'relationship_1.relationship_2.relationship_2_foo',
+                'IN',
+                'bar',
+            ),
+            'relationship_2_table_name.relationship_2_foo IN :relationship_2_foo_0',
+        ];
+
+        yield [
+            new Comparison(
+                'relationship_1.relationship_2.relationship_2_foo',
+                '<',
+                '2023-11-22 10:00:00',
+            ),
+            'relationship_2_table_name.relationship_2_foo < :relationship_2_foo_0',
+        ];
     }
 
     public function testInvalidRelationshipTraversal(): void
