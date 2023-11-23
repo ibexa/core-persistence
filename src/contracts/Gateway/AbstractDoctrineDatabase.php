@@ -126,13 +126,13 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     {
         $metadata = $this->getMetadata();
         $qb = $this->createBaseQueryBuilder();
+        $this->applyInheritance($qb);
 
         $identifierColumn = $metadata->getIdentifierColumn();
         $tableAlias = $this->getTableAlias();
         $platform = $this->connection->getDatabasePlatform();
         $qb->select($platform->getCountExpression($tableAlias . '.' . $identifierColumn));
 
-        $this->applyInheritance($qb);
         $this->applyCriteria($qb, $criteria);
 
         return (int)$qb->execute()->fetchOne();
