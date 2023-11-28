@@ -131,7 +131,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         $identifierColumn = $metadata->getIdentifierColumn();
         $tableAlias = $this->getTableAlias();
         $platform = $this->connection->getDatabasePlatform();
-        $qb->select($platform->getCountExpression($tableAlias . '.' . $identifierColumn));
+        $qb->select($platform->getCountExpression(sprintf('DISTINCT %s.%s', $tableAlias, $identifierColumn)));
 
         $this->applyCriteria($qb, $criteria);
 
