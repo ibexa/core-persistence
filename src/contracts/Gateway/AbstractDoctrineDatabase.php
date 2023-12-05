@@ -125,18 +125,15 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     public function countBy($criteria): int
     {
         $metadata = $this->getMetadata();
-        $qb = $this->connection->createQueryBuilder();
+        $qb = $this->createBaseQueryBuilder();
         $this->applyInheritance($qb);
 
         $identifierColumn = $metadata->getIdentifierColumn();
         $tableAlias = $this->getTableAlias();
-        $qb->select($this->connection->getDatabasePlatform()->getCountExpression($tableAlias . '.' . $identifierColumn));
-        $qb->from($metadata->getTableName(), $tableAlias);
+        $platform = $this->connection->getDatabasePlatform();
+        $qb->select($platform->getCountExpression(sprintf('DISTINCT %s.%s', $tableAlias, $identifierColumn)));
 
-        $expr = $this->convertCriteriaToExpression($qb, $criteria);
-        if ($expr !== null) {
-            $qb->andWhere($expr);
-        }
+        $this->applyCriteria($qb, $criteria);
 
         return (int)$qb->execute()->fetchOne();
     }
@@ -162,39 +159,10 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         $qb = $this->createBaseQueryBuilder();
         $this->applyInheritance($qb);
 
-        foreach ($orderBy ?? [] as $column => $order) {
-            if (!$metadata->hasColumn($column) && !$metadata->isInheritedColumn($column)) {
-                $columns = $metadata->getColumns();
-                foreach ($metadata->getSubclasses() as $subMetadata) {
-                    $columns = array_merge($columns, $subMetadata->getColumns());
-                }
+        $this->applyOrderBy($qb, $orderBy);
+        $this->applyCriteria($qb, $criteria);
+        $this->applyLimits($qb, $limit, $offset);
 
-                throw new InvalidArgumentException(sprintf(
-                    '"%s" does not exist in "%s", or is not available for ordering. Available columns are: "%s"',
-                    $column,
-                    $this->getTableName(),
-                    implode('", "', $columns),
-                ));
-            }
-
-            if ($metadata->isInheritedColumn($column)) {
-                $subMetadata = $metadata->getInheritanceMetadataWithColumn($column);
-                assert($subMetadata !== null);
-                $qb->addOrderBy($subMetadata->getTableName() . '.' . $column, $order);
-            } else {
-                $qb->addOrderBy($this->getTableAlias() . '.' . $column, $order);
-            }
-        }
-
-        $expr = $this->convertCriteriaToExpression($qb, $criteria);
-        if ($expr !== null) {
-            $qb->andWhere($expr);
-        }
-
-        if ($limit !== null) {
-            $qb->setMaxResults($limit);
-        }
-        $qb->setFirstResult($offset);
         $results = $qb->execute()->fetchAllAssociative();
 
         return array_map([$metadata, 'convertToPHPValues'], $results);
@@ -426,5 +394,56 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         $parameter = $qb->createPositionalParameter($value, $columnBinding);
 
         return $qb->expr()->eq($fullColumnName, $parameter);
+    }
+
+    /**
+     * @param array<string, string>|null $orderBy Map of column names to "ASC" or "DESC", that will be used in SORT query
+     */
+    final protected function applyOrderBy(QueryBuilder $qb, ?array $orderBy = []): void
+    {
+        $metadata = $this->getMetadata();
+
+        foreach ($orderBy ?? [] as $column => $order) {
+            if (!$metadata->hasColumn($column) && !$metadata->isInheritedColumn($column)) {
+                $columns = $metadata->getColumns();
+                foreach ($metadata->getSubclasses() as $subMetadata) {
+                    $columns = array_merge($columns, $subMetadata->getColumns());
+                }
+
+                throw new InvalidArgumentException(sprintf(
+                    '"%s" does not exist in "%s", or is not available for ordering. Available columns are: "%s"',
+                    $column,
+                    $this->getTableName(),
+                    implode('", "', $columns),
+                ));
+            }
+
+            if ($metadata->isInheritedColumn($column)) {
+                $subMetadata = $metadata->getInheritanceMetadataWithColumn($column);
+                assert($subMetadata !== null);
+                $qb->addOrderBy($subMetadata->getTableName() . '.' . $column, $order);
+            } else {
+                $qb->addOrderBy($this->getTableAlias() . '.' . $column, $order);
+            }
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     */
+    final protected function applyCriteria(QueryBuilder $qb, $criteria): void
+    {
+        $expr = $this->convertCriteriaToExpression($qb, $criteria);
+        if ($expr !== null) {
+            $qb->andWhere($expr);
+        }
+    }
+
+    final protected function applyLimits(QueryBuilder $qb, ?int $limit, int $offset): void
+    {
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+        $qb->setFirstResult($offset);
     }
 }

@@ -252,13 +252,13 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                     $metadata,
                     $relationship->getForeignKeyColumn(),
                     $column,
-                    $comparison->getValue(),
+                    $comparison,
                 );
             case $relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_JOINED:
                 return $this->handleJoinQuery(
                     $metadata,
                     $column,
-                    $comparison->getValue(),
+                    $comparison,
                 );
             default:
                 throw new RuntimeMappingException(sprintf(
@@ -287,13 +287,13 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     private function handleJoinQuery(
         DoctrineSchemaMetadataInterface $relationshipMetadata,
         string $field,
-        Value $value
+        Comparison $comparison
     ): string {
         $tableName = $relationshipMetadata->getTableName();
         $parameterName = $field . '_' . count($this->parameters);
         $placeholder = ':' . $parameterName;
 
-        $value = $this->walkValue($value);
+        $value = $this->walkValue($comparison->getValue());
         $type = $relationshipMetadata->getBindingTypeForColumn($field);
         if (is_array($value)) {
             $type += Connection::ARRAY_PARAM_OFFSET;
@@ -306,14 +306,14 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             return $this->expr()->in($tableName . '.' . $field, $placeholder);
         }
 
-        return $this->expr()->eq($tableName . '.' . $field, $placeholder);
+        return $this->expr()->comparison($tableName . '.' . $field, $comparison->getOperator(), $placeholder);
     }
 
     private function handleSubSelectQuery(
         DoctrineSchemaMetadataInterface $relationshipMetadata,
         string $foreignField,
         string $field,
-        Value $value
+        Comparison $comparison
     ): string {
         $tableName = $relationshipMetadata->getTableName();
         $parameterName = $field . '_' . count($this->parameters);
@@ -329,7 +329,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             ),
         );
 
-        $value = $this->walkValue($value);
+        $value = $this->walkValue($comparison->getValue());
         $type = $relationshipMetadata->getBindingTypeForColumn($field);
         if (is_array($value)) {
             $type += Connection::ARRAY_PARAM_OFFSET;
