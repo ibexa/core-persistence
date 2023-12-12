@@ -224,9 +224,14 @@ final class ExpressionVisitorTest extends TestCase
 
     /**
      * @dataProvider provideForFieldFromInheritedRelationship
+     *
+     * @phpstan-param array<\Ibexa\CorePersistence\Gateway\Parameter> $parameters
      */
-    public function testFieldFromInheritedRelationship(Comparison $comparison, string $expectedResult): void
-    {
+    public function testFieldFromInheritedRelationship(
+        Comparison $comparison,
+        string $expectedResult,
+        array $parameters
+    ): void {
         /** @var class-string $relationshipClass pretend it's a class-string */
         $relationshipClass = 'relationship_class';
         $doctrineRelationship = new DoctrineOneToManyRelationship(
@@ -254,26 +259,53 @@ final class ExpressionVisitorTest extends TestCase
             $expectedResult,
             $result,
         );
+
+        self::assertEquals($parameters, $this->expressionVisitor->getParameters());
     }
 
     /**
-     * @return iterable<array{\Doctrine\Common\Collections\Expr\Comparison, non-empty-string}>
+     * @return iterable<array{
+     *     \Doctrine\Common\Collections\Expr\Comparison,
+     *     non-empty-string,
+     *     array<\Ibexa\CorePersistence\Gateway\Parameter>,
+     * }>
      */
     public static function provideForFieldFromInheritedRelationship(): iterable
     {
         yield [
             new Comparison('relationship_1.field', '=', 'value'),
             'relationship_table_name.field = :field_0',
+            [new Parameter('field_0', 'value', 0)],
         ];
 
         yield [
             new Comparison('relationship_1.field', 'IN', ['value', 'value_2']),
             'relationship_table_name.field IN (:field_0)',
+            [new Parameter('field_0', ['value', 'value_2'], 100)],
         ];
 
         yield [
             new Comparison('relationship_1.field', '=', ['value', 'value_2']),
             'relationship_table_name.field IN (:field_0)',
+            [new Parameter('field_0', ['value', 'value_2'], 100)],
+        ];
+
+        yield [
+            new Comparison('relationship_1.field', 'STARTS_WITH', 'value'),
+            'relationship_table_name.field LIKE :field_0',
+            [new Parameter('field_0', 'value%', 0)],
+        ];
+
+        yield [
+            new Comparison('relationship_1.field', 'ENDS_WITH', 'value'),
+            'relationship_table_name.field LIKE :field_0',
+            [new Parameter('field_0', '%value', 0)],
+        ];
+
+        yield [
+            new Comparison('relationship_1.field', 'CONTAINS', 'value'),
+            'relationship_table_name.field LIKE :field_0',
+            [new Parameter('field_0', '%value%', 0)],
         ];
     }
 

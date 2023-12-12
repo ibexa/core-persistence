@@ -118,65 +118,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         }
         $parameter = new Parameter($parameterName, $value, $type);
 
-        switch ($comparison->getOperator()) {
-            case Comparison::IN:
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->in($fullColumnName, $placeholder);
-
-            case Comparison::NIN:
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->notIn($fullColumnName, $placeholder);
-
-            case Comparison::EQ:
-            case Comparison::IS:
-                if ($this->walkValue($comparison->getValue()) === null) {
-                    return $this->expr()->isNull($fullColumnName);
-                }
-
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->eq($fullColumnName, $placeholder);
-
-            case Comparison::NEQ:
-                if ($this->walkValue($comparison->getValue()) === null) {
-                    return $this->expr()->isNotNull($fullColumnName);
-                }
-
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->neq($fullColumnName, $placeholder);
-
-            case Comparison::CONTAINS:
-                $parameter->setValue('%' . $this->escapeSpecialSQLValues($parameter) . '%');
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->like($fullColumnName, $placeholder);
-
-            case Comparison::STARTS_WITH:
-                $parameter->setValue($this->escapeSpecialSQLValues($parameter) . '%');
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->like($fullColumnName, $placeholder);
-
-            case Comparison::ENDS_WITH:
-                $parameter->setValue('%' . $this->escapeSpecialSQLValues($parameter));
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->like($fullColumnName, $placeholder);
-
-            case Comparison::GT:
-            case Comparison::GTE:
-            case Comparison::LT:
-            case Comparison::LTE:
-                $this->parameters[] = $parameter;
-
-                return $this->expr()->comparison($fullColumnName, $comparison->getOperator(), $placeholder);
-
-            default:
-                throw new RuntimeException('Unknown comparison operator: ' . $comparison->getOperator());
-        }
+        return $this->handleComparison($comparison, $parameter, $fullColumnName, $placeholder);
     }
 
     /**
@@ -300,13 +242,14 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         }
 
         $parameter = new Parameter($parameterName, $value, $type);
-        $this->parameters[] = $parameter;
 
         if (is_array($value)) {
+            $this->parameters[] = $parameter;
+
             return $this->expr()->in($tableName . '.' . $field, $placeholder);
         }
 
-        return $this->expr()->comparison($tableName . '.' . $field, $comparison->getOperator(), $placeholder);
+        return $this->handleComparison($comparison, $parameter, $tableName . '.' . $field, $placeholder);
     }
 
     private function handleSubSelectQuery(
@@ -378,5 +321,68 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     {
         return $this->schemaMetadata->getIdentifierColumn() !== $column
             && $this->schemaMetadata->isInheritedColumn($column);
+    }
+
+    private function handleComparison(Comparison $comparison, Parameter $parameter, string $fullColumnName, string $placeholder): string
+    {
+        switch ($comparison->getOperator()) {
+            case Comparison::IN:
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->in($fullColumnName, $placeholder);
+
+            case Comparison::NIN:
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->notIn($fullColumnName, $placeholder);
+
+            case Comparison::EQ:
+            case Comparison::IS:
+                if ($this->walkValue($comparison->getValue()) === null) {
+                    return $this->expr()->isNull($fullColumnName);
+                }
+
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->eq($fullColumnName, $placeholder);
+
+            case Comparison::NEQ:
+                if ($this->walkValue($comparison->getValue()) === null) {
+                    return $this->expr()->isNotNull($fullColumnName);
+                }
+
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->neq($fullColumnName, $placeholder);
+
+            case Comparison::CONTAINS:
+                $parameter->setValue('%' . $this->escapeSpecialSQLValues($parameter) . '%');
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->like($fullColumnName, $placeholder);
+
+            case Comparison::STARTS_WITH:
+                $parameter->setValue($this->escapeSpecialSQLValues($parameter) . '%');
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->like($fullColumnName, $placeholder);
+
+            case Comparison::ENDS_WITH:
+                $parameter->setValue('%' . $this->escapeSpecialSQLValues($parameter));
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->like($fullColumnName, $placeholder);
+
+            case Comparison::GT:
+            case Comparison::GTE:
+            case Comparison::LT:
+            case Comparison::LTE:
+                $this->parameters[] = $parameter;
+
+                return $this->expr()->comparison($fullColumnName, $comparison->getOperator(), $placeholder);
+
+            default:
+                throw new RuntimeException('Unknown comparison operator: ' . $comparison->getOperator());
+        }
     }
 }
