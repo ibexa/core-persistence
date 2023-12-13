@@ -323,8 +323,12 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             && $this->schemaMetadata->isInheritedColumn($column);
     }
 
-    private function handleComparison(Comparison $comparison, Parameter $parameter, string $fullColumnName, string $placeholder): string
-    {
+    private function handleComparison(
+        Comparison $comparison,
+        Parameter $parameter,
+        string $fullColumnName,
+        string $placeholder
+    ): string {
         switch ($comparison->getOperator()) {
             case Comparison::IN:
                 $this->parameters[] = $parameter;
