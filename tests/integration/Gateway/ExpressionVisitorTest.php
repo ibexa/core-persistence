@@ -69,7 +69,7 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
                 'IN',
                 'bar',
             ),
-            'relationship_2_table_name.relationship_2_foo IN :relationship_2_foo_0',
+            'relationship_2_table_name.relationship_2_foo IN (:relationship_2_foo_0)',
         ];
 
         yield [
