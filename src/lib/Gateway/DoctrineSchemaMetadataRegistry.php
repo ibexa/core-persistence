@@ -17,7 +17,7 @@ use LogicException;
 final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegistryInterface
 {
     /** @var array<class-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface> */
-    private array $metadata;
+    private array $classToMetadata;
 
     /** @var array<class-string, \Ibexa\Contracts\CorePersistence\Gateway\TranslationDoctrineSchemaMetadataInterface> */
     private array $translationMetadata;
@@ -76,14 +76,14 @@ final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegi
                 continue;
             }
 
-            if (isset($this->metadata[$className])) {
+            if (isset($this->classToMetadata[$className])) {
                 throw new LogicException(sprintf(
                     'Unable to register schema metadata for "%s" class. Schema metadata is already registered.',
                     $className,
                 ));
             }
 
-            $this->metadata[$className] = $metadata;
+            $this->classToMetadata[$className] = $metadata;
         }
         $this->initialized = true;
     }
@@ -92,14 +92,27 @@ final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegi
     {
         $this->ensureInitialized();
 
-        return array_keys($this->metadata);
+        return array_keys($this->classToMetadata + $this->tableToMetadata);
     }
 
-    public function getMetadata(string $className): DoctrineSchemaMetadataInterface
+    public function getMetadata(string $classOrTableName): DoctrineSchemaMetadataInterface
     {
         $this->ensureInitialized();
 
-        return $this->metadata[$className];
+        if (isset($this->tableToMetadata[$classOrTableName])) {
+            return $this->getMetadataForTable($classOrTableName);
+        }
+
+        if (isset($this->classToMetadata[$classOrTableName])) {
+            /** @phpstan-var class-string $classOrTableName */
+            return $this->getMetadataForClass($classOrTableName);
+        }
+
+        throw new LogicException(sprintf(
+            'Failed to find metadata for table or class "%s". Did you forget to tag your gateway with "%s" tag?',
+            $classOrTableName,
+            IbexaCorePersistenceExtension::TAG_DOCTRINE_GATEWAY,
+        ));
     }
 
     public function getTranslationMetadata(string $className): TranslationDoctrineSchemaMetadataInterface
@@ -122,5 +135,20 @@ final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegi
         }
 
         return $this->tableToMetadata[$tableName];
+    }
+
+    public function getMetadataForClass(string $className): DoctrineSchemaMetadataInterface
+    {
+        $this->ensureInitialized();
+
+        if (!isset($this->classToMetadata[$className])) {
+            throw new LogicException(sprintf(
+                'Failed to find metadata for class "%s". Did you forget to tag your gateway with "%s" tag?',
+                $className,
+                IbexaCorePersistenceExtension::TAG_DOCTRINE_GATEWAY,
+            ));
+        }
+
+        return $this->classToMetadata[$className];
     }
 }
