@@ -12,7 +12,6 @@
     "symfony/config": "^5.4",
     "symfony/dependency-injection": "^5.4",
     "symfony/event-dispatcher": "^5.4",
-    "symfony/event-dispatcher-contracts": "^2.2",
     "symfony/http-foundation": "^5.4",
     "symfony/http-kernel": "^5.4",
     "symfony/yaml": "^5.4"
