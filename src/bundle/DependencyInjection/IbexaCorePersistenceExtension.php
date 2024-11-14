@@ -16,10 +16,12 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 final class IbexaCorePersistenceExtension extends Extension
 {
-    public const TAG_DOCTRINE_GATEWAY = 'ibexa.core.persistence.doctrine_gateway';
+    public const string TAG_DOCTRINE_GATEWAY = 'ibexa.core.persistence.doctrine_gateway';
 
     /**
      * @param array<string, mixed> $configs
+     *
+     * @throws \Exception
      */
     public function load(array $configs, ContainerBuilder $container): void
     {
