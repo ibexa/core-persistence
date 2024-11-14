@@ -9,12 +9,12 @@
         "php": " >=8.3",
         "ibexa/core": "~5.0.x-dev",
         "ibexa/doctrine-schema": "~5.0.x-dev",
-        "symfony/config": "^5.4",
-        "symfony/dependency-injection": "^5.4",
-        "symfony/event-dispatcher": "^5.4",
-        "symfony/http-foundation": "^5.4",
-        "symfony/http-kernel": "^5.4",
-        "symfony/yaml": "^5.4"
+        "symfony/config": "^6.4",
+        "symfony/dependency-injection": "^6.4",
+        "symfony/event-dispatcher": "^6.4",
+        "symfony/http-foundation": "^6.4",
+        "symfony/http-kernel": "^6.4",
+        "symfony/yaml": "^6.4"
     },
     "require-dev": {
         "dama/doctrine-test-bundle": "^6.7",
@@ -23,7 +23,7 @@
         "phpstan/phpstan": "^1.4",
         "phpstan/phpstan-phpunit": "^1.0",
         "phpunit/phpunit": "^9.0",
-        "symfony/phpunit-bridge": "^5.4"
+        "symfony/phpunit-bridge": "^6.4"
     },
     "autoload": {
         "psr-4": {
