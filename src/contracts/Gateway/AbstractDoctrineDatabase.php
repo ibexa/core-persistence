@@ -117,8 +117,6 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
-     *
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
@@ -258,7 +256,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|\DateTimeInterface|array<scalar|\DateTimeInterface>|null> $criteria
      *
      * @return \Doctrine\DBAL\Query\Expression\CompositeExpression|string|null
      *
@@ -326,7 +324,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param scalar|array<scalar>|null $value
+     * @param scalar|\DateTimeInterface|array<scalar|\DateTimeInterface>|null $value
      *
      * @throws \Doctrine\DBAL\Exception
      * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
@@ -449,7 +447,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|\DateTimeInterface|array<scalar|\DateTimeInterface>|null> $criteria
      */
     final protected function applyCriteria(QueryBuilder $qb, $criteria): void
     {
