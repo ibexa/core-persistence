@@ -11,6 +11,7 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 use Doctrine\Common\Collections\Expr\Expression;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Types\ConversionException;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use InvalidArgumentException;
 
@@ -382,13 +383,32 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             return $qb->expr()->isNull($fullColumnName);
         }
 
+        $columnType = $metadata->getColumnType($column);
+        $platform = $this->connection->getDatabasePlatform();
+
         if (is_array($value)) {
+            $value = array_map(
+                static function ($value) use ($columnType, $platform) {
+                    try {
+                        return $columnType->convertToDatabaseValue($value, $platform);
+                    } catch (ConversionException $e) {
+                        return $value;
+                    }
+                },
+                $value,
+            );
+
             $parameter = $qb->createPositionalParameter(
                 $value,
                 $columnBinding + Connection::ARRAY_PARAM_OFFSET
             );
 
             return $qb->expr()->in($fullColumnName, $parameter);
+        }
+
+        try {
+            $value = $columnType->convertToDatabaseValue($value, $this->connection->getDatabasePlatform());
+        } catch (ConversionException $e) {
         }
 
         $parameter = $qb->createPositionalParameter($value, $columnBinding);
