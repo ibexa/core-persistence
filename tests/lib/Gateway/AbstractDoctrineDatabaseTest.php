@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Ibexa\Tests\CorePersistence\Gateway;
 
+use DateTimeImmutable;
+use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\Platforms\PostgreSQL94Platform;
@@ -25,7 +27,136 @@ use PHPUnit\Framework\TestCase;
  */
 final class AbstractDoctrineDatabaseTest extends TestCase
 {
-    public function testDateTimeQueries(): void
+    /**
+     * @dataProvider provideForDateTimeQueries
+     *
+     * @param array<mixed|\Doctrine\Common\Collections\Expr\Comparison> $query
+     * @param array<array-key, string> $expectedParameters
+     */
+    public function testDateTimeQueries(
+        array $query,
+        string $sql,
+        array $expectedParameters
+    ): void {
+        $connection = $this->createConnectionMock();
+        $database = $this->createDatabaseGateway($connection);
+
+        $result = $this->createMock(ResultStatement::class);
+        $result->expects(self::once())
+            ->method('fetch')
+            ->willReturn(false);
+
+        $connection->expects(self::once())
+            ->method('executeQuery')
+            ->with(
+                self::identicalTo($sql),
+                self::identicalTo($expectedParameters),
+            )
+            ->willReturn($result);
+
+        $database->findBy($query);
+    }
+
+    /**
+     * @return iterable<array{
+     *     array<mixed|\Doctrine\Common\Collections\Expr\Comparison>,
+     *     non-empty-string,
+     *     array<array-key, string>,
+     * }>
+     */
+    public static function provideForDateTimeQueries(): iterable
+    {
+        yield [
+            [
+                new Comparison(
+                    'date_time_immutable_column',
+                    Comparison::LT,
+                    new DateTimeImmutable('2024-01-01 00:00:00'),
+                ),
+            ],
+            str_replace(
+                "\n",
+                ' ',
+                <<<SQL
+                SELECT __foo_table__.id, __foo_table__.date_time_immutable_column
+                FROM __foo_table__ __foo_table__
+                WHERE __foo_table__.date_time_immutable_column < :date_time_immutable_column_0
+                SQL,
+            ),
+            [
+                'date_time_immutable_column_0' => '2024-01-01 00:00:00',
+            ],
+        ];
+
+        yield [
+            [
+                'date_time_immutable_column' => new DateTimeImmutable('2024-01-01 00:00:00'),
+            ],
+            str_replace(
+                "\n",
+                ' ',
+                <<<SQL
+                SELECT __foo_table__.id, __foo_table__.date_time_immutable_column
+                FROM __foo_table__ __foo_table__ WHERE __foo_table__.date_time_immutable_column = ?
+                SQL,
+            ),
+            [
+                1 => '2024-01-01 00:00:00',
+            ],
+        ];
+    }
+
+    /**
+     * @return \Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase<array<mixed>>
+     */
+    private function createDatabaseGateway(Connection $connection): AbstractDoctrineDatabase
+    {
+        $registry = $this->createMock(DoctrineSchemaMetadataRegistryInterface::class);
+
+        $metadata = new DoctrineSchemaMetadata(
+            $connection,
+            null,
+            '__foo_table__',
+            [
+                'id' => Types::INTEGER,
+                'date_time_immutable_column' => Types::DATETIME_IMMUTABLE,
+            ],
+            ['id'],
+        );
+
+        $registry->expects(self::atLeastOnce())
+            ->method('getMetadataForTable')
+            ->with(self::identicalTo('__foo_table__'))
+            ->willReturn($metadata);
+
+        return new class($connection, $registry, $metadata) extends AbstractDoctrineDatabase {
+            private DoctrineSchemaMetadata $metadata;
+
+            public function __construct(
+                Connection $connection,
+                DoctrineSchemaMetadataRegistryInterface $registry,
+                DoctrineSchemaMetadata $metadata
+            ) {
+                parent::__construct($connection, $registry);
+                $this->metadata = $metadata;
+            }
+
+            protected function getTableName(): string
+            {
+                return '__foo_table__';
+            }
+
+            protected function buildMetadata(): DoctrineSchemaMetadataInterface
+            {
+                return $this->metadata;
+            }
+        };
+    }
+
+    /**
+     * @return \Doctrine\DBAL\Connection&\PHPUnit\Framework\MockObject\MockObject
+     */
+    private function createConnectionMock(): Connection
     {
         $connection = $this->createMock(Connection::class);
         $connection->expects(self::once())
@@ -40,48 +171,6 @@ final class AbstractDoctrineDatabaseTest extends TestCase
             ->method('getExpressionBuilder')
             ->willReturn(new ExpressionBuilder($connection));
 
-        $result = $this->createMock(ResultStatement::class);
-        $result->expects(self::once())
-            ->method('fetch')
-            ->willReturn(false);
-
-        $connection->expects(self::once())
-            ->method('executeQuery')
-            ->with(
-                self::identicalTo(
-                    'SELECT __foo_table__.id, __foo_table__.date_time_immutable_column FROM __foo_table__ __foo_table__ WHERE __foo_table__.date_time_immutable_column = ?',
-                ),
-                self::identicalTo([
-                    1 => '2024-01-01 00:00:00',
-                ]),
-            )
-            ->willReturn($result);
-
-        $registry = $this->createMock(DoctrineSchemaMetadataRegistryInterface::class);
-
-        $database = new class($connection, $registry) extends AbstractDoctrineDatabase {
-            protected function getTableName(): string
-            {
-                return '__foo_table__';
-            }
-
-            protected function buildMetadata(): DoctrineSchemaMetadataInterface
-            {
-                return new DoctrineSchemaMetadata(
-                    $this->connection,
-                    null,
-                    $this->getTableName(),
-                    [
-                        'id' => Types::INTEGER,
-                        'date_time_immutable_column' => Types::DATETIME_IMMUTABLE,
-                    ],
-                    ['id'],
-                );
-            }
-        };
-
-        $database->findBy([
-            'date_time_immutable_column' => new \DateTimeImmutable('2024-01-01 00:00:00'),
-        ]);
+        return $connection;
     }
 }
