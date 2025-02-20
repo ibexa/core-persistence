@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 final class AbstractDoctrineDatabaseTest extends TestCase
 {
     /**
-     * @dataProvider provideForDateTimeQueries
+     * @dataProvider provideForTestDateTimeQueries
      *
      * @param array<mixed|\Doctrine\Common\Collections\Expr\Comparison> $query
      * @param array<array-key, string> $expectedParameters
@@ -64,7 +64,7 @@ final class AbstractDoctrineDatabaseTest extends TestCase
      *     array<array-key, string>,
      * }>
      */
-    public static function provideForDateTimeQueries(): iterable
+    public static function provideForTestDateTimeQueries(): iterable
     {
         yield [
             [
