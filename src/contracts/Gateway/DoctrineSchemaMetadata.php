@@ -236,15 +236,34 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function convertToDatabaseValues(array $data): array
+    public function convertToPHPValue(string $columnName, $value)
     {
         $platform = $this->connection->getDatabasePlatform();
+
+        return $this->getColumnType($columnName)->convertToPHPValue($value, $platform);
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function convertToDatabaseValues(array $data): array
+    {
         $result = [];
         foreach ($data as $columnName => $value) {
-            $result[$columnName] = $this->getColumnType($columnName)->convertToDatabaseValue($value, $platform);
+            $result[$columnName] = $this->convertToDatabaseValue($columnName, $value);
         }
 
         return $result;
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function convertToDatabaseValue(string $column, $value)
+    {
+        $platform = $this->connection->getDatabasePlatform();
+
+        return $this->getColumnType($column)->convertToDatabaseValue($value, $platform);
     }
 
     /**
