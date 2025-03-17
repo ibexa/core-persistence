@@ -189,7 +189,7 @@ final class ExpressionVisitorTest extends TestCase
         $this->connection
             ->expects(self::once())
             ->method('createQueryBuilder')
-            ->willReturnCallback(fn () => new QueryBuilder($this->connection));
+            ->willReturnCallback(fn (): QueryBuilder => new QueryBuilder($this->connection));
 
         /** @var class-string $relationshipClass pretend it's a class-string */
         $relationshipClass = 'relationship_class';

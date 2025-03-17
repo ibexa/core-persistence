@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Ibexa\Tests\Bundle\CorePersistence\Gateway;
 
+use Doctrine\DBAL\Connection;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadata;
@@ -20,7 +21,7 @@ final class DoctrineSchemaMetadataTest extends TestCase
     protected function setUp(): void
     {
         $this->metadata = new DoctrineSchemaMetadata(
-            $this->createMock(\Doctrine\DBAL\Connection::class),
+            $this->createMock(Connection::class),
             'stdClass',
             'std_class_table',
             [
