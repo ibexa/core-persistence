@@ -1,64 +1,64 @@
 {
-  "name": "ibexa/core-persistence",
-  "license": "(GPL-2.0-only or proprietary)",
-  "type": "ibexa-bundle",
-  "keywords": [
-    "ibexa-dxp"
-  ],
-  "require": {
-    "php": "^7.4 || ^8.0",
-    "ibexa/core": "~4.6.x-dev",
-    "ibexa/doctrine-schema": "~4.6.x-dev",
-    "symfony/config": "^5.4",
-    "symfony/dependency-injection": "^5.4",
-    "symfony/event-dispatcher": "^5.4",
-    "symfony/http-foundation": "^5.4",
-    "symfony/http-kernel": "^5.4",
-    "symfony/yaml": "^5.4"
-  },
-  "require-dev": {
-    "dama/doctrine-test-bundle": "^6.7",
-    "ibexa/code-style": "^1.1",
-    "ibexa/test-core": "0.1.x-dev",
-    "phpstan/phpstan": "^1.4",
-    "phpstan/phpstan-phpunit": "^1.0",
-    "phpunit/phpunit": "^9.0",
-    "symfony/phpunit-bridge": "^5.4"
-  },
-  "autoload": {
-    "psr-4": {
-      "Ibexa\\Bundle\\CorePersistence\\": "src/bundle/",
-      "Ibexa\\Contracts\\CorePersistence\\": "src/contracts/",
-      "Ibexa\\CorePersistence\\": "src/lib/"
+    "name": "ibexa/core-persistence",
+    "license": "(GPL-2.0-only or proprietary)",
+    "type": "ibexa-bundle",
+    "keywords": [
+        "ibexa-dxp"
+    ],
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "ibexa/core": "~4.6.x-dev",
+        "ibexa/doctrine-schema": "~4.6.x-dev",
+        "symfony/config": "^5.4",
+        "symfony/dependency-injection": "^5.4",
+        "symfony/event-dispatcher": "^5.4",
+        "symfony/http-foundation": "^5.4",
+        "symfony/http-kernel": "^5.4",
+        "symfony/yaml": "^5.4"
+    },
+    "require-dev": {
+        "dama/doctrine-test-bundle": "^6.7",
+        "ibexa/code-style": "^1.1",
+        "ibexa/test-core": "0.1.x-dev",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpunit/phpunit": "^9.0",
+        "symfony/phpunit-bridge": "^5.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ibexa\\Bundle\\CorePersistence\\": "src/bundle/",
+            "Ibexa\\Contracts\\CorePersistence\\": "src/contracts/",
+            "Ibexa\\CorePersistence\\": "src/lib/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ibexa\\Tests\\Bundle\\CorePersistence\\": "tests/bundle/",
+            "Ibexa\\Tests\\Integration\\CorePersistence\\": "tests/integration/",
+            "Ibexa\\Tests\\CorePersistence\\": "tests/lib/"
+        }
+    },
+    "scripts": {
+        "fix-cs": "php-cs-fixer fix --config=.php-cs-fixer.php --show-progress=dots",
+        "check-cs": "@fix-cs --dry-run",
+        "test": "phpunit -c phpunit.xml.dist",
+        "test-integration": "phpunit -c phpunit.integration.xml",
+        "phpstan": "phpstan analyse -c phpstan.neon"
+    },
+    "scripts-descriptions": {
+        "fix-cs": "Automatically fixes code style in all files",
+        "check-cs": "Run code style checker for all files",
+        "test": "Run automatic tests",
+        "phpstan": "Run static code analysis"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "4.6.x-dev"
+        }
+    },
+    "config": {
+        "allow-plugins": false,
+        "sort-packages": true
     }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Ibexa\\Tests\\Bundle\\CorePersistence\\": "tests/bundle/",
-      "Ibexa\\Tests\\Integration\\CorePersistence\\": "tests/integration/",
-      "Ibexa\\Tests\\CorePersistence\\": "tests/lib/"
-    }
-  },
-  "scripts": {
-    "fix-cs": "php-cs-fixer fix --config=.php-cs-fixer.php --show-progress=dots",
-    "check-cs": "@fix-cs --dry-run",
-    "test": "phpunit -c phpunit.xml.dist",
-    "test-integration": "phpunit -c phpunit.integration.xml",
-    "phpstan": "phpstan analyse -c phpstan.neon"
-  },
-  "scripts-descriptions": {
-    "fix-cs": "Automatically fixes code style in all files",
-    "check-cs": "Run code style checker for all files",
-    "test": "Run automatic tests",
-    "phpstan": "Run static code analysis"
-  },
-  "extra": {
-    "branch-alias": {
-      "dev-main": "4.6.x-dev"
-    }
-  },
-  "config": {
-    "allow-plugins": false,
-    "sort-packages": true
-  }
 }
