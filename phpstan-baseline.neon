@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method Ibexa\\Contracts\\CorePersistence\\Gateway\\AbstractDoctrineDatabase\:\:findBy\(\) should return array\<int, T of array\> but returns array\<int, array\<string, mixed\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/contracts/Gateway/AbstractDoctrineDatabase.php
-
-		-
 			message: '#^Method Ibexa\\Contracts\\CorePersistence\\Gateway\\DoctrineOneToManyRelationship\:\:getForeignKeyColumn\(\) should return non\-empty\-string but returns ''''\.$#'
 			identifier: return.type
 			count: 1
