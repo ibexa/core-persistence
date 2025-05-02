@@ -22,7 +22,7 @@ $application = new Application($kernel);
 $application->setAutoExit(false);
 
 $databaseUrl = getenv('DATABASE_URL');
-if ($databaseUrl !== false && str_starts_with($databaseUrl, 'sqlite')) {
+if ($databaseUrl !== false && !str_starts_with($databaseUrl, 'sqlite')) {
     $application->run(new ArrayInput([
         'command' => 'doctrine:database:drop',
         '--if-exists' => '1',
