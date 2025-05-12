@@ -135,7 +135,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
         $this->applyCriteria($qb, $criteria);
 
-        return (int)$qb->execute()->fetchOne();
+        return (int)$qb->executeQuery()->fetchOne();
     }
 
     /**
@@ -163,8 +163,9 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         $this->applyCriteria($qb, $criteria);
         $this->applyLimits($qb, $limit, $offset);
 
-        $results = $qb->execute()->fetchAllAssociative();
+        $results = $qb->executeQuery()->fetchAllAssociative();
 
+        /** @phpstan-var array<int, T> */
         return array_map([$metadata, 'convertToPHPValues'], $results);
     }
 

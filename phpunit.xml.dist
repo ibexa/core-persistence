@@ -4,6 +4,9 @@
         bootstrap="vendor/autoload.php"
         failOnWarning="true"
         colors="true">
+    <php>
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=0&amp;max[direct]=0&amp;max[indirect]=15&amp;verbose=0"/>
+    </php>
     <testsuites>
         <testsuite name="bundle">
             <directory>tests/bundle</directory>
