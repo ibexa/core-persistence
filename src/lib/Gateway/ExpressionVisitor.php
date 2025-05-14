@@ -116,6 +116,8 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         } else {
             $fullColumnName = $this->tableAlias . '.' . $column;
         }
+
+        $value = $this->schemaMetadata->convertToDatabaseValue($column, $value);
         $parameter = new Parameter($parameterName, $value, $type);
 
         return $this->handleComparison($comparison, $parameter, $fullColumnName, $placeholder);
