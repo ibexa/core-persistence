@@ -409,9 +409,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             if (!$metadata->hasColumn($column) && !$metadata->isInheritedColumn($column)) {
                 $columns = $metadata->getColumns();
                 foreach ($metadata->getSubclasses() as $subMetadata) {
-                    foreach ($subMetadata->getColumns() as $subColumn) {
-                        $columns[] = $subColumn;
-                    }
+                    $columns = [...$columns, ...$subMetadata->getColumns()];
                 }
 
                 throw new InvalidArgumentException(
