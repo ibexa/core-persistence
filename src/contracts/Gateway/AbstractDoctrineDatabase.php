@@ -23,9 +23,9 @@ use InvalidArgumentException;
  */
 abstract class AbstractDoctrineDatabase implements GatewayInterface
 {
-    public const DISCRIMINATOR_SEPARATOR = '_';
+    public const string DISCRIMINATOR_SEPARATOR = '_';
 
-    private const TRANSLATION_TABLE_ALIAS = 'translation';
+    private const string TRANSLATION_TABLE_ALIAS = 'translation';
 
     private DoctrineSchemaMetadataInterface $metadata;
 
@@ -40,7 +40,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @return non-empty-string
+     * @phpstan-return non-empty-string
      */
     abstract protected function getTableName(): string;
 
@@ -130,8 +130,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
         $identifierColumn = $metadata->getIdentifierColumn();
         $tableAlias = $this->getTableAlias();
-        $platform = $this->connection->getDatabasePlatform();
-        $qb->select($platform->getCountExpression(sprintf('DISTINCT %s.%s', $tableAlias, $identifierColumn)));
+        $qb->select(sprintf('COUNT(DISTINCT %s.%s)', $tableAlias, $identifierColumn));
 
         $this->applyCriteria($qb, $criteria);
 
@@ -267,7 +266,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
      */
     final protected function convertCriteriaToExpression(
         QueryBuilder $qb,
-        $criteria
+        array|Expression $criteria
     ) {
         /** @var array<string> $conditions */
         $conditions = [];
@@ -322,7 +321,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             $qb->setParameter($parameter->getName(), $parameterValue, $type);
         }
 
-        return (string) $sql;
+        return (string)$sql;
     }
 
     /**
@@ -343,10 +342,12 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             $subquery = $this->connection->createQueryBuilder();
             $subquery->select(self::TRANSLATION_TABLE_ALIAS . '.' . $translationForeignKeyColumn);
             $subquery->from($translationMetadata->getTableName(), self::TRANSLATION_TABLE_ALIAS);
-            $subquery->where($subquery->expr()->eq(
-                self::TRANSLATION_TABLE_ALIAS . '.' . $translationForeignKeyColumn,
-                $this->getTableAlias() . '.' . $metadata->getIdentifierColumn(),
-            ));
+            $subquery->where(
+                $subquery->expr()->eq(
+                    self::TRANSLATION_TABLE_ALIAS . '.' . $translationForeignKeyColumn,
+                    $this->getTableAlias() . '.' . $metadata->getIdentifierColumn(),
+                )
+            );
 
             $fullColumnName = self::TRANSLATION_TABLE_ALIAS . '.' . $column;
             if ($value === null) {
@@ -408,15 +409,17 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             if (!$metadata->hasColumn($column) && !$metadata->isInheritedColumn($column)) {
                 $columns = $metadata->getColumns();
                 foreach ($metadata->getSubclasses() as $subMetadata) {
-                    $columns = array_merge($columns, $subMetadata->getColumns());
+                    $columns = [...$columns, ...$subMetadata->getColumns()];
                 }
 
-                throw new InvalidArgumentException(sprintf(
-                    '"%s" does not exist in "%s", or is not available for ordering. Available columns are: "%s"',
-                    $column,
-                    $this->getTableName(),
-                    implode('", "', $columns),
-                ));
+                throw new InvalidArgumentException(
+                    sprintf(
+                        '"%s" does not exist in "%s", or is not available for ordering. Available columns are: "%s"',
+                        $column,
+                        $this->getTableName(),
+                        implode('", "', $columns),
+                    )
+                );
             }
 
             if ($metadata->isInheritedColumn($column)) {
@@ -432,7 +435,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     /**
      * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
      */
-    final protected function applyCriteria(QueryBuilder $qb, $criteria): void
+    final protected function applyCriteria(QueryBuilder $qb, array|Expression $criteria): void
     {
         $expr = $this->convertCriteriaToExpression($qb, $criteria);
         if ($expr !== null) {
