@@ -162,6 +162,10 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     private function handleRelationshipComparison(string $column, Comparison $comparison): string
     {
         $metadata = $this->schemaMetadata;
+        $fromTable = $this->tableAlias;
+        $toTable = null;
+        $subQuery = null;
+
         do {
             [
                 $foreignProperty,
@@ -170,6 +174,24 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
             $relationship = $metadata->getRelationshipByForeignProperty($foreignProperty);
             $metadata = $this->registry->getMetadata($relationship->getRelationshipClass());
+
+            $parentMetadata = $metadata->getParentMetadata();
+            if (null !== $parentMetadata) {
+                $fromTable = $parentMetadata->getTableName();
+            } else {
+                $fromTable = $toTable ?? $fromTable;
+            }
+
+            $toTable = $metadata->getTableName();
+
+            if (DoctrineRelationship::JOIN_TYPE_SUB_SELECT === $relationship->getJoinType()) {
+                $subQuery ??= $this->queryBuilder->getConnection()->createQueryBuilder();
+                $this->handleRelationshipSubSelectColumns($subQuery, $fromTable, $toTable, $relationship);
+            }
+
+            if (DoctrineRelationship::JOIN_TYPE_JOINED === $relationship->getJoinType()) {
+                $this->handleRelationshipJoinedTypeColumns($fromTable, $toTable, $relationship);
+            }
         } while ($this->containsRelationshipDelimiter($column));
 
         if (!$metadata->hasColumn($column)) {
@@ -195,12 +217,13 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                     $relationship->getForeignKeyColumn(),
                     $column,
                     $comparison,
+                    $subQuery ?? $this->queryBuilder->getConnection()->createQueryBuilder()
                 );
             case $relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_JOINED:
                 return $this->handleJoinQuery(
                     $metadata,
                     $column,
-                    $comparison,
+                    $comparison
                 );
             default:
                 throw new RuntimeMappingException(sprintf(
@@ -256,19 +279,16 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         DoctrineSchemaMetadataInterface $relationshipMetadata,
         string $foreignField,
         string $field,
-        Comparison $comparison
+        Comparison $comparison,
+        QueryBuilder $subQuery
     ): string {
         $tableName = $relationshipMetadata->getTableName();
         $parameterName = $field . '_' . count($this->parameters);
-        $placeholder = ':' . $parameterName;
 
-        $subquery = $this->queryBuilder->getConnection()->createQueryBuilder();
-        $subquery->from($tableName);
-        $subquery->select($tableName . '.' . $relationshipMetadata->getIdentifierColumn());
-        $subquery->where(
-            $subquery->expr()->in(
+        $subQuery->andWhere(
+            $subQuery->expr()->in(
                 $tableName . '.' . $field,
-                $placeholder,
+                ':' . $parameterName,
             ),
         );
 
@@ -282,7 +302,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
         return $this->expr()->in(
             $this->tableAlias . '.' . $foreignField,
-            $subquery->getSQL(),
+            $subQuery->getSQL(),
         );
     }
 
@@ -387,6 +407,47 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
             default:
                 throw new RuntimeException('Unknown comparison operator: ' . $comparison->getOperator());
+        }
+    }
+
+    private function handleRelationshipJoinedTypeColumns(
+        string $fromTable,
+        string $toTable,
+        DoctrineRelationshipInterface $relationship
+    ): void {
+        $this->queryBuilder->leftJoin(
+            $fromTable,
+            $toTable,
+            $toTable,
+            $this->queryBuilder->expr()->eq(
+                $fromTable . '.' . $relationship->getForeignKeyColumn(),
+                $toTable . '.' . $relationship->getRelatedClassIdColumn()
+            )
+        );
+    }
+
+    private function handleRelationshipSubSelectColumns(
+        QueryBuilder $subQuery,
+        string $fromTable,
+        string $toTable,
+        DoctrineRelationshipInterface $relationship
+    ): void {
+        if (!$subQuery->getQueryPart('select')) {
+            $subQuery
+                ->select($toTable . '.' . $relationship->getRelatedClassIdColumn())
+                ->from($toTable);
+        }
+
+        if ($fromTable !== $this->tableAlias) {
+            $subQuery->join(
+                $fromTable,
+                $toTable,
+                $toTable,
+                $this->queryBuilder->expr()->eq(
+                    $fromTable . '.' . $relationship->getForeignKeyColumn(),
+                    $toTable . '.' . $relationship->getRelatedClassIdColumn()
+                )
+            );
         }
     }
 }
