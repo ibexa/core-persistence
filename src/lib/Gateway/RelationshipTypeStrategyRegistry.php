@@ -16,6 +16,9 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 
+/**
+ * @internal
+ */
 final class RelationshipTypeStrategyRegistry implements RelationshipTypeStrategyRegistryInterface
 {
     /** @var array<\Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyInterface> */

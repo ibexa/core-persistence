@@ -14,6 +14,9 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 
+/**
+ * @internal
+ */
 final class JoinedRelationshipTypeStrategy implements RelationshipTypeStrategyInterface
 {
     public function handleRelationshipType(
