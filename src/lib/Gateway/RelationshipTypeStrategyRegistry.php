@@ -36,18 +36,9 @@ final class RelationshipTypeStrategyRegistry implements RelationshipTypeStrategy
         string $fromTable,
         string $toTable
     ): void {
-        if (empty($this->strategies[$relationship->getJoinType()])) {
-            throw new RuntimeMappingException(sprintf(
-                'Unhandled relationship metadata. Expected one of "%s". Received "%s".',
-                implode('", "', [
-                    DoctrineRelationship::class,
-                    DoctrineOneToManyRelationship::class,
-                ]),
-                get_class($relationship),
-            ));
-        }
+        $strategy = $this->getRelationshipStrategy($relationship);
 
-        $this->strategies[$relationship->getJoinType()]->handleRelationshipType(
+        $strategy->handleRelationshipType(
             $queryBuilder,
             $relationship,
             $rootTableAlias,
@@ -64,6 +55,21 @@ final class RelationshipTypeStrategyRegistry implements RelationshipTypeStrategy
         QueryBuilder $queryBuilder,
         array $parameters
     ): RelationshipQuery {
+        $strategy = $this->getRelationshipStrategy($relationship);
+
+        return $strategy->handleRelationshipTypeQuery(
+            $relationshipMetadata,
+            $relationship,
+            $field,
+            $comparison,
+            $queryBuilder,
+            $parameters
+        );
+    }
+
+    private function getRelationshipStrategy(
+        DoctrineRelationshipInterface $relationship
+    ): RelationshipTypeStrategyInterface {
         if (empty($this->strategies[$relationship->getJoinType()])) {
             throw new RuntimeMappingException(sprintf(
                 'Unhandled relationship metadata. Expected one of "%s". Received "%s".',
@@ -75,13 +81,6 @@ final class RelationshipTypeStrategyRegistry implements RelationshipTypeStrategy
             ));
         }
 
-        return $this->strategies[$relationship->getJoinType()]->handleRelationshipTypeQuery(
-            $relationshipMetadata,
-            $relationship,
-            $field,
-            $comparison,
-            $queryBuilder,
-            $parameters
-        );
+        return $this->strategies[$relationship->getJoinType()];
     }
 }
