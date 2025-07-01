@@ -11,6 +11,7 @@ namespace Ibexa\Tests\CorePersistence\Gateway;
 use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\CorePersistence\Gateway\SubSelectRelationshipTypeStrategy;
 
 /**
@@ -68,9 +69,12 @@ final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeSt
         );
     }
 
-    public function testHandleRelationshipTypeQuery(): void
+    public function testHandleRelationshipTypeQueryThrowsRuntimeMappingException(): void
     {
-        $relationshipQuery = $this->strategy->handleRelationshipTypeQuery(
+        $this->expectException(RuntimeMappingException::class);
+        $this->expectExceptionMessage('Query is not initialized.');
+
+        $this->strategy->handleRelationshipTypeQuery(
             $this->createDoctrineSchemaMetadata(),
             $this->createDoctrineRelationship(),
             'related_class_id_column',
@@ -82,6 +86,27 @@ final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeSt
             new QueryBuilder($this->connection),
             []
         );
+    }
+
+    public function testHandleRelationshipTypeQuery(): void
+    {
+        $queryBuilder = new QueryBuilder($this->connection);
+        $queryBuilder
+            ->select('test_alias.related_class_id_column')
+            ->from('test_table', 'test_alias');
+
+        $relationshipQuery = $this->strategy->handleRelationshipTypeQuery(
+            $this->createDoctrineSchemaMetadata(),
+            $this->createDoctrineRelationship(),
+            'related_class_id_column',
+            new Comparison(
+                'related_class_id_column',
+                Comparison::EQ,
+                'value'
+            ),
+            $queryBuilder,
+            []
+        );
 
         $parameter = $relationshipQuery->getParameter();
         self::assertSame('related_class_id_column_0', $parameter->getName());
@@ -90,8 +115,19 @@ final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeSt
 
         $queryBuilder = $relationshipQuery->getQueryBuilder();
 
-        self::assertEmpty($queryBuilder->getQueryPart('select'));
-        self::assertEmpty($queryBuilder->getQueryPart('from'));
+        self::assertSame(
+            ['test_alias.related_class_id_column'],
+            $queryBuilder->getQueryPart('select')
+        );
+        self::assertSame(
+            [
+                [
+                    'table' => 'test_table',
+                    'alias' => 'test_alias',
+                ],
+            ],
+            $queryBuilder->getQueryPart('from')
+        );
         self::assertEquals(
             new CompositeExpression(
                 CompositeExpression::TYPE_AND,

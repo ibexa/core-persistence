@@ -27,7 +27,7 @@ final class SubSelectRelationshipTypeStrategy implements RelationshipTypeStrateg
         string $fromTable,
         string $toTable
     ): void {
-        if (!$queryBuilder->getQueryPart('select')) {
+        if (empty($queryBuilder->getQueryPart('select'))) {
             $queryBuilder
                 ->select($toTable . '.' . $relationship->getRelatedClassIdColumn())
                 ->from($toTable);
@@ -54,7 +54,7 @@ final class SubSelectRelationshipTypeStrategy implements RelationshipTypeStrateg
         QueryBuilder $queryBuilder,
         array $parameters
     ): RelationshipQuery {
-        if (null === $queryBuilder->getQueryPart('select')) {
+        if (empty($queryBuilder->getQueryPart('select'))) {
             throw new RuntimeMappingException(
                 'Query is not initialized.',
             );
