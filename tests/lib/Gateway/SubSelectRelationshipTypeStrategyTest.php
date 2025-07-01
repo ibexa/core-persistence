@@ -12,6 +12,7 @@ use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\CorePersistence\Gateway\SubSelectRelationshipTypeStrategy;
 
 /**
@@ -34,14 +35,14 @@ final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeSt
 
         $this->strategy->handleRelationshipType(
             $queryBuilder,
-            $this->createDoctrineRelationship(),
+            $this->createDoctrineRelationship(DoctrineRelationship::JOIN_TYPE_SUB_SELECT),
             'root_alias',
             'from_table',
             'to_table'
         );
 
         self::assertSame(
-            ['to_table.foreign_key_column'],
+            ['to_table.related_class_id_column'],
             $queryBuilder->getQueryPart('select')
         );
         self::assertSame(
@@ -61,7 +62,7 @@ final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeSt
                         'joinType' => 'inner',
                         'joinTable' => 'to_table',
                         'joinAlias' => 'to_table',
-                        'joinCondition' => 'from_table.related_class_id_column = to_table.foreign_key_column',
+                        'joinCondition' => 'from_table.foreign_key_column = to_table.related_class_id_column',
                     ],
                 ],
             ],
@@ -76,7 +77,7 @@ final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeSt
 
         $this->strategy->handleRelationshipTypeQuery(
             $this->createDoctrineSchemaMetadata(),
-            $this->createDoctrineRelationship(),
+            $this->createDoctrineRelationship(DoctrineRelationship::JOIN_TYPE_SUB_SELECT),
             'related_class_id_column',
             new Comparison(
                 'related_class_id_column',
@@ -97,7 +98,7 @@ final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeSt
 
         $relationshipQuery = $this->strategy->handleRelationshipTypeQuery(
             $this->createDoctrineSchemaMetadata(),
-            $this->createDoctrineRelationship(),
+            $this->createDoctrineRelationship(DoctrineRelationship::JOIN_TYPE_SUB_SELECT),
             'related_class_id_column',
             new Comparison(
                 'related_class_id_column',

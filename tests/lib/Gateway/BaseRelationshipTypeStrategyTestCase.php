@@ -36,13 +36,17 @@ abstract class BaseRelationshipTypeStrategyTestCase extends TestCase
             ->willReturn($platform);
     }
 
-    protected function createDoctrineRelationship(): DoctrineRelationship
+    /**
+     * @phpstan-param DoctrineRelationship::JOIN_TYPE_* $joinType
+     */
+    protected function createDoctrineRelationship(string $joinType): DoctrineRelationship
     {
         return new DoctrineRelationship(
             RelationshipClass::class,
-            DoctrineRelationship::JOIN_TYPE_JOINED,
+            'foreign_property',
+            'foreign_key_column',
             'related_class_id_column',
-            'foreign_key_column'
+            $joinType
         );
     }
 

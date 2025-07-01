@@ -10,6 +10,7 @@ namespace Ibexa\Tests\CorePersistence\Gateway;
 
 use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\CorePersistence\Gateway\JoinedRelationshipTypeStrategy;
 
 /**
@@ -32,7 +33,7 @@ final class JoinedRelationshipTypeStrategyTest extends BaseRelationshipTypeStrat
 
         $this->strategy->handleRelationshipType(
             $queryBuilder,
-            $this->createDoctrineRelationship(),
+            $this->createDoctrineRelationship(DoctrineRelationship::JOIN_TYPE_JOINED),
             'root_alias',
             'from_table',
             'to_table'
@@ -48,7 +49,7 @@ final class JoinedRelationshipTypeStrategyTest extends BaseRelationshipTypeStrat
                         'joinType' => 'left',
                         'joinTable' => 'to_table',
                         'joinAlias' => 'to_table',
-                        'joinCondition' => 'from_table.related_class_id_column = to_table.foreign_key_column',
+                        'joinCondition' => 'from_table.foreign_key_column = to_table.related_class_id_column',
                     ],
                 ],
             ],
@@ -60,7 +61,7 @@ final class JoinedRelationshipTypeStrategyTest extends BaseRelationshipTypeStrat
     {
         $relationshipQuery = $this->strategy->handleRelationshipTypeQuery(
             $this->createDoctrineSchemaMetadata(),
-            $this->createDoctrineRelationship(),
+            $this->createDoctrineRelationship(DoctrineRelationship::JOIN_TYPE_JOINED),
             'related_class_id_column',
             new Comparison(
                 'related_class_id_column',
