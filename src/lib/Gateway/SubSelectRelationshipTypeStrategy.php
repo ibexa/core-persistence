@@ -11,6 +11,7 @@ namespace Ibexa\CorePersistence\Gateway;
 use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Connection;
 use  Doctrine\DBAL\Query\QueryBuilder;
+use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 
@@ -53,6 +54,12 @@ final class SubSelectRelationshipTypeStrategy implements RelationshipTypeStrateg
         QueryBuilder $queryBuilder,
         array $parameters
     ): RelationshipQuery {
+        if (null === $queryBuilder->getQueryPart('select')) {
+            throw new RuntimeMappingException(
+                'Query is not initialized.',
+            );
+        }
+
         $tableName = $relationshipMetadata->getTableName();
         $parameterName = $field . '_' . count($parameters);
 
