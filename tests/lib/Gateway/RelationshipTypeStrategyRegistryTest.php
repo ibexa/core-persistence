@@ -8,11 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\Tests\CorePersistence\Gateway;
 
-use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
-use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use Ibexa\Tests\CorePersistence\Stub\InvalidDoctrineRelationship;
 use PHPUnit\Framework\TestCase;
@@ -49,16 +47,10 @@ final class RelationshipTypeStrategyRegistryTest extends TestCase
         $this->expectExceptionMessage('Unhandled relationship metadata. Expected one of "Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship", "Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship". Received "Ibexa\Tests\CorePersistence\Stub\InvalidDoctrineRelationship"');
 
         $this->registry->handleRelationshipTypeQuery(
-            $this->createMock(DoctrineSchemaMetadataInterface::class),
             new InvalidDoctrineRelationship(),
-            'field',
-            new Comparison(
-                'related_class_id_column',
-                Comparison::EQ,
-                'value'
-            ),
-            new QueryBuilder($this->createMock(Connection::class)),
-            []
+            $this->createMock(QueryBuilder::class),
+            'related_class_id_column',
+            'related_class_id_column_0'
         );
     }
 }

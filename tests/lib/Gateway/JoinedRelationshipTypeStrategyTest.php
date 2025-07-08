@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace Ibexa\Tests\CorePersistence\Gateway;
 
-use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\CorePersistence\Gateway\JoinedRelationshipTypeStrategy;
@@ -59,29 +58,16 @@ final class JoinedRelationshipTypeStrategyTest extends BaseRelationshipTypeStrat
 
     public function testHandleRelationshipTypeQuery(): void
     {
+        $queryBuilder = new QueryBuilder($this->connection);
         $relationshipQuery = $this->strategy->handleRelationshipTypeQuery(
-            $this->createDoctrineSchemaMetadata(),
-            $this->createDoctrineRelationship(DoctrineRelationship::JOIN_TYPE_JOINED),
-            'related_class_id_column',
-            new Comparison(
-                'related_class_id_column',
-                Comparison::EQ,
-                'value'
-            ),
-            new QueryBuilder($this->connection),
-            []
+            $queryBuilder,
+            'to_table.related_class_id_column_0',
+            ':related_class_id_column_0'
         );
 
-        $parameter = $relationshipQuery->getParameter();
-        self::assertSame('related_class_id_column_0', $parameter->getName());
-        self::assertSame(1, $parameter->getType());
-        self::assertSame('value', $parameter->getValue());
-
-        $queryBuilder = $relationshipQuery->getQueryBuilder();
-
-        self::assertEmpty($queryBuilder->getQueryPart('select'));
-        self::assertEmpty($queryBuilder->getQueryPart('from'));
-        self::assertEmpty($queryBuilder->getQueryPart('where'));
-        self::assertEmpty($queryBuilder->getQueryPart('join'));
+        self::assertEmpty($relationshipQuery->getQueryPart('select'));
+        self::assertEmpty($relationshipQuery->getQueryPart('from'));
+        self::assertEmpty($relationshipQuery->getQueryPart('where'));
+        self::assertEmpty($relationshipQuery->getQueryPart('join'));
     }
 }
