@@ -20,6 +20,7 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
+use LogicException;
 use RuntimeException;
 
 /**
@@ -105,7 +106,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         }
 
         $parameterName = $column . '_' . count($this->parameters);
-        $placeholder = ':' . $parameterName;
+        $placeholder = $this->getPlaceholder($parameterName);
         $value = $this->walkValue($comparison->getValue());
         $type = $this->schemaMetadata->getBindingTypeForColumn($column);
         if (is_array($value)) {
@@ -235,51 +236,67 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         Comparison $comparison,
         ?QueryBuilder $subQuery
     ): string {
-        $relationshipQuery = $this->relationshipTypeStrategyRegistry->handleRelationshipTypeQuery(
-            $metadata,
-            $relationship,
-            $column,
-            $comparison,
-            $subQuery ?? $this->queryBuilder,
-            $this->parameters
-        );
-
-        if ($relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_SUB_SELECT) {
+        $isSubSelectJoin = $relationship->getJoinType() === DoctrineRelationship::JOIN_TYPE_SUB_SELECT;
+        if ($isSubSelectJoin) {
             if ($subQuery === null) {
-                throw new RuntimeMappingException(
+                throw new LogicException(
                     'Sub-select query is not initialized.',
                 );
             }
+        }
 
+        $parameterName = $column . '_' . count($this->parameters);
+        $fullColumnName = $metadata->getTableName() . '.' . $column;
+        $relationshipQuery = $this->relationshipTypeStrategyRegistry->handleRelationshipTypeQuery(
+            $relationship,
+            $subQuery ?? $this->queryBuilder,
+            $fullColumnName,
+            $this->getPlaceholder($parameterName)
+        );
+
+        if ($isSubSelectJoin) {
             return $this->handleSubSelectQuery(
                 $relationship,
+                $metadata,
+                $comparison,
+                $column,
+                $parameterName,
                 $relationshipQuery
             );
         }
 
         return $this->handleJoinQuery(
+            $comparison,
             $metadata,
             $column,
-            $comparison,
+            $parameterName,
+            $fullColumnName,
             $relationshipQuery
         );
     }
 
     private function handleJoinQuery(
+        Comparison $comparison,
         DoctrineSchemaMetadataInterface $relationshipMetadata,
         string $field,
-        Comparison $comparison,
-        RelationshipQuery $relationshipQuery
+        string $parameterName,
+        string $fullColumnName,
+        QueryBuilder $relationshipQuery
     ): string {
-        $parameter = $relationshipQuery->getParameter();
-        $tableName = $relationshipMetadata->getTableName();
-        $placeholder = ':' . $parameter->getName();
-        $fullColumnName = $tableName . '.' . $field;
+        $value = $this->walkValue($comparison->getValue());
+        $type = $relationshipMetadata->getBindingTypeForColumn($field);
 
-        if (is_array($parameter->getValue())) {
+        if (is_array($value)) {
+            $type += Connection::ARRAY_PARAM_OFFSET;
+        }
+
+        $parameter = new Parameter($parameterName, $value, $type);
+        $placeholder = $this->getPlaceholder($parameterName);
+
+        if (is_array($value)) {
             $this->parameters[] = $parameter;
 
-            return $relationshipQuery->getQueryBuilder()->expr()->in(
+            return $relationshipQuery->expr()->in(
                 $fullColumnName,
                 $placeholder
             );
@@ -295,13 +312,23 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     private function handleSubSelectQuery(
         DoctrineRelationshipInterface $relationship,
-        RelationshipQuery $relationshipQuery
+        DoctrineSchemaMetadataInterface $relationshipMetadata,
+        Comparison $comparison,
+        string $field,
+        string $parameterName,
+        QueryBuilder $relationshipQuery
     ): string {
-        $this->parameters[] = $relationshipQuery->getParameter();
+        $value = $this->walkValue($comparison->getValue());
+        $type = $relationshipMetadata->getBindingTypeForColumn($field);
+        if (is_array($value)) {
+            $type += Connection::ARRAY_PARAM_OFFSET;
+        }
+
+        $this->parameters[] = new Parameter($parameterName, $value, $type);
 
         return $this->expr()->in(
             $this->tableAlias . '.' . $relationship->getForeignKeyColumn(),
-            $relationshipQuery->getQueryBuilder()->getSQL(),
+            $relationshipQuery->getSQL(),
         );
     }
 
@@ -335,6 +362,11 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             $this->tableAlias . '.' . $this->schemaMetadata->getIdentifierColumn(),
             $subquery->getSQL(),
         );
+    }
+
+    private function getPlaceholder(string $parameterName): string
+    {
+        return ':' . $parameterName;
     }
 
     private function isInheritedColumn(string $column): bool

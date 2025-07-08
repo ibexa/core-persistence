@@ -8,13 +8,11 @@ declare(strict_types=1);
 
 namespace Ibexa\CorePersistence\Gateway;
 
-use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
-use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 
 /**
  * @internal
@@ -51,22 +49,17 @@ final class RelationshipTypeStrategyRegistry implements RelationshipTypeStrategy
     }
 
     public function handleRelationshipTypeQuery(
-        DoctrineSchemaMetadataInterface $relationshipMetadata,
         DoctrineRelationshipInterface $relationship,
-        string $field,
-        Comparison $comparison,
         QueryBuilder $queryBuilder,
-        array $parameters
-    ): RelationshipQuery {
+        string $fullColumnName,
+        string $placeholder
+    ): QueryBuilder {
         $strategy = $this->getRelationshipStrategy($relationship);
 
         return $strategy->handleRelationshipTypeQuery(
-            $relationshipMetadata,
-            $relationship,
-            $field,
-            $comparison,
             $queryBuilder,
-            $parameters
+            $fullColumnName,
+            $placeholder
         );
     }
 

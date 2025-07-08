@@ -8,12 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\CorePersistence\Gateway;
 
-use Doctrine\Common\Collections\Expr\Comparison;
-use Doctrine\DBAL\Connection;
 use  Doctrine\DBAL\Query\QueryBuilder;
-use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
-use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
+use LogicException;
 
 /**
  * @internal
@@ -47,38 +44,20 @@ final class SubSelectRelationshipTypeStrategy implements RelationshipTypeStrateg
     }
 
     public function handleRelationshipTypeQuery(
-        DoctrineSchemaMetadataInterface $relationshipMetadata,
-        DoctrineRelationshipInterface $relationship,
-        string $field,
-        Comparison $comparison,
         QueryBuilder $queryBuilder,
-        array $parameters
-    ): RelationshipQuery {
+        string $fullColumnName,
+        string $placeholder
+    ): QueryBuilder {
         if (empty($queryBuilder->getQueryPart('select'))) {
-            throw new RuntimeMappingException(
+            throw new LogicException(
                 'Query is not initialized.',
             );
         }
 
-        $tableName = $relationshipMetadata->getTableName();
-        $parameterName = $field . '_' . count($parameters);
-
         $queryBuilder->andWhere(
-            $queryBuilder->expr()->in(
-                $tableName . '.' . $field,
-                ':' . $parameterName,
-            ),
+            $queryBuilder->expr()->in($fullColumnName, $placeholder)
         );
 
-        $value = $comparison->getValue()->getValue();
-        $type = $relationshipMetadata->getBindingTypeForColumn($field);
-        if (is_array($value)) {
-            $type += Connection::ARRAY_PARAM_OFFSET;
-        }
-
-        return new RelationshipQuery(
-            new Parameter($parameterName, $value, $type),
-            $queryBuilder
-        );
+        return $queryBuilder;
     }
 }
