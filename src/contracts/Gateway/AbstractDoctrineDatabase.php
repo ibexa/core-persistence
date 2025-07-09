@@ -11,6 +11,7 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 use Doctrine\Common\Collections\Expr\Expression;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Types\ConversionException;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use InvalidArgumentException;
@@ -117,8 +118,6 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
-     *
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
@@ -258,7 +257,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|\DateTimeInterface|array<scalar|\DateTimeInterface>|null> $criteria
      *
      * @return \Doctrine\DBAL\Query\Expression\CompositeExpression|string|null
      *
@@ -327,7 +326,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param scalar|array<scalar>|null $value
+     * @param scalar|\DateTimeInterface|array<scalar|\DateTimeInterface>|null $value
      *
      * @throws \Doctrine\DBAL\Exception
      * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
@@ -384,13 +383,32 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             return $qb->expr()->isNull($fullColumnName);
         }
 
+        $columnType = $metadata->getColumnType($column);
+        $platform = $this->connection->getDatabasePlatform();
+
         if (is_array($value)) {
+            $value = array_map(
+                static function ($value) use ($columnType, $platform) {
+                    try {
+                        return $columnType->convertToDatabaseValue($value, $platform);
+                    } catch (ConversionException $e) {
+                        return $value;
+                    }
+                },
+                $value,
+            );
+
             $parameter = $qb->createPositionalParameter(
                 $value,
                 $columnBinding + Connection::ARRAY_PARAM_OFFSET
             );
 
             return $qb->expr()->in($fullColumnName, $parameter);
+        }
+
+        try {
+            $value = $columnType->convertToDatabaseValue($value, $this->connection->getDatabasePlatform());
+        } catch (ConversionException $e) {
         }
 
         $parameter = $qb->createPositionalParameter($value, $columnBinding);
@@ -431,7 +449,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|\DateTimeInterface|array<scalar|\DateTimeInterface>|null> $criteria
      */
     final protected function applyCriteria(QueryBuilder $qb, $criteria): void
     {
