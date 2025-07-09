@@ -12,6 +12,7 @@ use Doctrine\Common\Collections\Expr\Expression;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
+use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use InvalidArgumentException;
 
 /**
@@ -308,6 +309,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             $this->registry,
             $this->getTableName(),
             $this->getTableAlias(),
+            new RelationshipTypeStrategyRegistry()
         );
     }
 
