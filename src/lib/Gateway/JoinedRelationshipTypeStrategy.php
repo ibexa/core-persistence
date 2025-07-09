@@ -23,6 +23,10 @@ final class JoinedRelationshipTypeStrategy implements RelationshipTypeStrategyIn
         string $fromTable,
         string $toTable
     ): void {
+        if ($this->isTableAlreadyJoined($queryBuilder, $toTable)) {
+            return;
+        }
+
         $queryBuilder->leftJoin(
             $fromTable,
             $toTable,
@@ -40,5 +44,24 @@ final class JoinedRelationshipTypeStrategy implements RelationshipTypeStrategyIn
         string $placeholder
     ): QueryBuilder {
         return $queryBuilder;
+    }
+
+    private function isTableAlreadyJoined(
+        QueryBuilder $queryBuilder,
+        string $tableToJoin
+    ): bool {
+        $joinQueryPart = $queryBuilder->getQueryPart('join');
+
+        foreach ($joinQueryPart as $joins) {
+            foreach ($joins as $join) {
+                $joinAlias = $join['joinAlias'] ?? $join['joinTable'];
+
+                if ($joinAlias === $tableToJoin) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
