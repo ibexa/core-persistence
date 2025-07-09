@@ -22,6 +22,7 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\Parameter;
+use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\TestCase;
 
@@ -66,6 +67,7 @@ final class ExpressionVisitorTest extends TestCase
             $this->registry,
             'table_name',
             'table_alias',
+            new RelationshipTypeStrategyRegistry()
         );
     }
 

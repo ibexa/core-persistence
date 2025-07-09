@@ -14,6 +14,7 @@ use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
 use Ibexa\Contracts\Test\Core\IbexaKernelTestCase;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
+use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 
 final class ExpressionVisitorTest extends IbexaKernelTestCase
 {
@@ -29,6 +30,7 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
             $registry,
             'foo_table_name',
             'foo_table_alias',
+            new RelationshipTypeStrategyRegistry()
         );
     }
 
