@@ -50,13 +50,16 @@ final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegi
             $metadata = $gateway->getMetadata();
 
             $tableName = $metadata->getTableName();
-            if (isset($this->tableToMetadata[$tableName])) {
+            if (isset($this->tableToMetadata[$tableName]) && $this->tableToMetadata[$tableName] != $metadata) {
                 throw new LogicException(sprintf(
                     'Unable to register table schema metadata for "%s" table. Schema metadata is already registered.',
                     $tableName,
                 ));
             }
-            $this->tableToMetadata[$tableName] = $metadata;
+
+            if (!isset($this->tableToMetadata[$tableName])) {
+                $this->tableToMetadata[$tableName] = $metadata;
+            }
 
             $className = $metadata->getClassName();
             if ($className === null) {
