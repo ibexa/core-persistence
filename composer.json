@@ -7,8 +7,8 @@
     ],
     "require": {
         "php": "^7.4 || ^8.0",
-        "ibexa/core": "~4.6.x-dev",
-        "ibexa/doctrine-schema": "~4.6.x-dev",
+        "ibexa/core": "~4.6",
+        "ibexa/doctrine-schema": "~4.6",
         "symfony/config": "^5.4",
         "symfony/dependency-injection": "^5.4",
         "symfony/event-dispatcher": "^5.4",
@@ -19,7 +19,7 @@
     "require-dev": {
         "dama/doctrine-test-bundle": "^6.7",
         "ibexa/code-style": "^1.1",
-        "ibexa/test-core": "0.1.x-dev",
+        "ibexa/test-core": "0.1",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^9.0",
