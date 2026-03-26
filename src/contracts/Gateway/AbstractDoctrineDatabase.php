@@ -117,7 +117,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|\Stringable|\Symfony\Component\Uid\AbstractUid|array<scalar|\Stringable|\Symfony\Component\Uid\AbstractUid>|null> $criteria
      *
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
@@ -258,7 +258,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|\Stringable|\Symfony\Component\Uid\AbstractUid|array<scalar|\Stringable|\Symfony\Component\Uid\AbstractUid>|null> $criteria
      *
      * @return \Doctrine\DBAL\Query\Expression\CompositeExpression|string|null
      *
@@ -327,7 +327,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param scalar|array<scalar>|null $value
+     * @param scalar|\Stringable|\Symfony\Component\Uid\AbstractUid|array<scalar|\Stringable|\Symfony\Component\Uid\AbstractUid>|null $value
      *
      * @throws \Doctrine\DBAL\Exception
      * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
@@ -431,7 +431,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|\Stringable|\Symfony\Component\Uid\AbstractUid|array<scalar|\Stringable|\Symfony\Component\Uid\AbstractUid>|null> $criteria
      */
     final protected function applyCriteria(QueryBuilder $qb, $criteria): void
     {
