@@ -30,7 +30,8 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
             $registry,
             'foo_table_name',
             'foo_table_alias',
-            new RelationshipTypeStrategyRegistry()
+            new RelationshipTypeStrategyRegistry(),
+            $connection
         );
     }
 

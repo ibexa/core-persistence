@@ -309,7 +309,8 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             $this->registry,
             $this->getTableName(),
             $this->getTableAlias(),
-            new RelationshipTypeStrategyRegistry()
+            new RelationshipTypeStrategyRegistry(),
+            $this->connection
         );
     }
 
