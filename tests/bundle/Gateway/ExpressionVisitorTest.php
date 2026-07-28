@@ -67,7 +67,8 @@ final class ExpressionVisitorTest extends TestCase
             $this->registry,
             'table_name',
             'table_alias',
-            new RelationshipTypeStrategyRegistry()
+            new RelationshipTypeStrategyRegistry(),
+            $this->connection
         );
     }
 

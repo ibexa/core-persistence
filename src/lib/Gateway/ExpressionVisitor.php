@@ -50,6 +50,8 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     private RelationshipTypeStrategyRegistryInterface $relationshipTypeStrategyRegistry;
 
+    private Connection $connection;
+
     /**
      * @param non-empty-string $tableName
      */
@@ -58,13 +60,15 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         DoctrineSchemaMetadataRegistryInterface $registry,
         string $tableName,
         string $tableAlias,
-        RelationshipTypeStrategyRegistryInterface $relationshipTypeStrategyRegistry
+        RelationshipTypeStrategyRegistryInterface $relationshipTypeStrategyRegistry,
+        Connection $connection
     ) {
         $this->queryBuilder = $queryBuilder;
         $this->schemaMetadata = $registry->getMetadataForTable($tableName);
         $this->tableAlias = $tableAlias;
         $this->registry = $registry;
         $this->relationshipTypeStrategyRegistry = $relationshipTypeStrategyRegistry;
+        $this->connection = $connection;
     }
 
     /**
@@ -148,7 +152,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
                 return (string)$this->expr()->or(...$expressionList);
 
             case 'NOT':
-                return $this->queryBuilder->getConnection()->getDatabasePlatform()->getNotExpression($expressionList[0]);
+                return sprintf('NOT(%s)', $expressionList[0]);
 
             default:
                 throw new RuntimeException('Unknown composite ' . $expr->getType());
@@ -188,7 +192,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             $toTable = $metadata->getTableName();
 
             if (DoctrineRelationship::JOIN_TYPE_SUB_SELECT === $relationship->getJoinType()) {
-                $subQuery ??= $this->queryBuilder->getConnection()->createQueryBuilder();
+                $subQuery ??= $this->connection->createQueryBuilder();
             }
 
             $this->relationshipTypeStrategyRegistry->handleRelationshipType(
@@ -219,7 +223,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     private function escapeSpecialSQLValues(Parameter $parameter): string
     {
-        $platform = $this->queryBuilder->getConnection()->getDatabasePlatform();
+        $platform = $this->connection->getDatabasePlatform();
 
         return $platform->escapeStringForLike($parameter->getValue(), '\\');
     }
@@ -337,7 +341,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         $translationMetadata = $this->schemaMetadata->getTranslationSchemaMetadata();
         $translationForeignKeyColumn = $translationMetadata->getTranslatableIdColumn();
 
-        $subquery = $this->queryBuilder->getConnection()->createQueryBuilder();
+        $subquery = $this->connection->createQueryBuilder();
         $subquery->select(self::TRANSLATION_TABLE_ALIAS . '.' . $translationForeignKeyColumn);
         $subquery->from($translationMetadata->getTableName(), self::TRANSLATION_TABLE_ALIAS);
         $subquery->where($subquery->expr()->eq(
@@ -350,7 +354,8 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             $this->registry,
             $translationMetadata->getTableName(),
             self::TRANSLATION_TABLE_ALIAS,
-            $this->relationshipTypeStrategyRegistry
+            $this->relationshipTypeStrategyRegistry,
+            $this->connection
         );
         $innerCondition = $innerExpressionVisitor->walkComparison($comparison);
         $subquery->andWhere($innerCondition);
