@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\CorePersistence\Gateway;
 
+use Doctrine\DBAL\Query\Exception\NonUniqueAlias;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\QueryException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 
 /**
@@ -23,19 +25,16 @@ final class JoinedRelationshipTypeStrategy implements RelationshipTypeStrategyIn
         string $fromTable,
         string $toTable
     ): void {
-        if ($this->isTableAlreadyJoined($queryBuilder, $toTable)) {
+        $condition = (string)$queryBuilder->expr()->eq(
+            $fromTable . '.' . $relationship->getForeignKeyColumn(),
+            $toTable . '.' . $relationship->getRelatedClassIdColumn()
+        );
+
+        if ($this->isAliasAlreadyTaken($queryBuilder, $fromTable, $toTable, $condition)) {
             return;
         }
 
-        $queryBuilder->leftJoin(
-            $fromTable,
-            $toTable,
-            $toTable,
-            $queryBuilder->expr()->eq(
-                $fromTable . '.' . $relationship->getForeignKeyColumn(),
-                $toTable . '.' . $relationship->getRelatedClassIdColumn()
-            )
-        );
+        $queryBuilder->leftJoin($fromTable, $toTable, $toTable, $condition);
     }
 
     public function handleRelationshipTypeQuery(
@@ -46,20 +45,30 @@ final class JoinedRelationshipTypeStrategy implements RelationshipTypeStrategyIn
         return $queryBuilder;
     }
 
-    private function isTableAlreadyJoined(
+    /**
+     * A gateway is free to join a relationship's table itself before handing the query over, so the
+     * only safe answer comes from the query builder rather than from what this strategy has joined.
+     * DBAL 4 exposes no accessor for the joins it holds, so the join is added to a copy and the copy
+     * is asked to build itself: an alias that is already taken is exactly what NonUniqueAlias reports.
+     */
+    private function isAliasAlreadyTaken(
         QueryBuilder $queryBuilder,
-        string $tableToJoin
+        string $fromTable,
+        string $toTable,
+        string $condition
     ): bool {
-        $joinQueryPart = $queryBuilder->getQueryPart('join');
+        $probe = clone $queryBuilder;
+        $probe->leftJoin($fromTable, $toTable, $toTable, $condition);
 
-        foreach ($joinQueryPart as $joins) {
-            foreach ($joins as $join) {
-                $joinAlias = $join['joinAlias'] ?? $join['joinTable'];
-
-                if ($joinAlias === $tableToJoin) {
-                    return true;
-                }
-            }
+        try {
+            $probe->getSQL();
+        } catch (NonUniqueAlias) {
+            return true;
+        } catch (QueryException) {
+            // The query cannot be built for an unrelated reason - an unknown FROM alias, or no
+            // SELECT yet. Nothing is duplicated, so the join still has to be made, and the real
+            // query builder will raise the same problem on its own terms.
+            return false;
         }
 
         return false;

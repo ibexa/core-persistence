@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\Contracts\CorePersistence\Gateway;
 
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Types\Type;
 
 /**
@@ -84,7 +86,7 @@ interface DoctrineSchemaMetadataInterface
     /**
      * @param array<string, mixed> $data
      *
-     * @return array<string, int>
+     * @return array<string, \Doctrine\DBAL\ParameterType>
      *
      * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
      */
@@ -96,10 +98,17 @@ interface DoctrineSchemaMetadataInterface
     public function getIdentifierColumn(): string;
 
     /**
+     * @return array<string>
+     */
+    public function getIdentifierColumns(): array;
+
+    /**
      * @throws \Doctrine\DBAL\Exception
      * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
      */
-    public function getBindingTypeForColumn(string $columnName): int;
+    public function getBindingTypeForColumn(string $columnName): ParameterType;
+
+    public function getArrayBindingTypeForColumn(string $columnName): ArrayParameterType;
 
     /**
      * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface

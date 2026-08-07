@@ -112,10 +112,9 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         $parameterName = $column . '_' . count($this->parameters);
         $placeholder = $this->getPlaceholder($parameterName);
         $value = $this->walkValue($comparison->getValue());
-        $type = $this->schemaMetadata->getBindingTypeForColumn($column);
-        if (is_array($value)) {
-            $type += Connection::ARRAY_PARAM_OFFSET;
-        }
+        $type = is_array($value)
+            ? $this->schemaMetadata->getArrayBindingTypeForColumn($column)
+            : $this->schemaMetadata->getBindingTypeForColumn($column);
 
         if ($this->isInheritedColumn($column)) {
             $inheritanceMetadata = $this->schemaMetadata->getInheritanceMetadataWithColumn($column);
@@ -288,11 +287,9 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         QueryBuilder $relationshipQuery
     ): string {
         $value = $this->walkValue($comparison->getValue());
-        $type = $relationshipMetadata->getBindingTypeForColumn($field);
-
-        if (is_array($value)) {
-            $type += Connection::ARRAY_PARAM_OFFSET;
-        }
+        $type = is_array($value)
+            ? $relationshipMetadata->getArrayBindingTypeForColumn($field)
+            : $relationshipMetadata->getBindingTypeForColumn($field);
 
         $parameter = new Parameter($parameterName, $value, $type);
         $placeholder = $this->getPlaceholder($parameterName);
@@ -323,10 +320,9 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         QueryBuilder $relationshipQuery
     ): string {
         $value = $this->walkValue($comparison->getValue());
-        $type = $relationshipMetadata->getBindingTypeForColumn($field);
-        if (is_array($value)) {
-            $type += Connection::ARRAY_PARAM_OFFSET;
-        }
+        $type = is_array($value)
+            ? $relationshipMetadata->getArrayBindingTypeForColumn($field)
+            : $relationshipMetadata->getBindingTypeForColumn($field);
 
         $this->parameters[] = new Parameter($parameterName, $value, $type);
 

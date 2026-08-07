@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\CorePersistence\Gateway;
 
+use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\DBAL\ParameterType;
+
 /**
  * @internal
  */
@@ -15,7 +18,7 @@ final class Parameter
 {
     private string $name;
 
-    private int $type;
+    private ArrayParameterType|ParameterType $type;
 
     /** @var mixed */
     private $value;
@@ -23,7 +26,7 @@ final class Parameter
     /**
      * @param mixed $value
      */
-    public function __construct(string $name, $value, int $type)
+    public function __construct(string $name, $value, ArrayParameterType|ParameterType $type)
     {
         $this->name = $name;
         $this->value = $value;
@@ -51,7 +54,7 @@ final class Parameter
         return $this->value;
     }
 
-    public function getType(): int
+    public function getType(): ArrayParameterType|ParameterType
     {
         return $this->type;
     }

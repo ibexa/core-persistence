@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\Contracts\CorePersistence\Gateway;
 
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Types\Type;
 use Ibexa\Contracts\CorePersistence\Exception\MappingException;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
@@ -206,6 +208,11 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
         return $this->getInheritanceMetadataWithColumn($column) !== null;
     }
 
+    public function getIdentifierColumns(): array
+    {
+        return $this->identifierColumns;
+    }
+
     public function getIdentifierColumn(): string
     {
         if (count($this->identifierColumns) > 1) {
@@ -250,7 +257,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     /**
      * @param array<string, mixed> $data
      *
-     * @return array<string, int>
+     * @return array<string, \Doctrine\DBAL\ParameterType>
      *
      * @throws \Doctrine\DBAL\Exception
      */
@@ -267,9 +274,19 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getBindingTypeForColumn(string $columnName): int
+    public function getBindingTypeForColumn(string $columnName): ParameterType
     {
         return $this->getColumnType($columnName)->getBindingType();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getArrayBindingTypeForColumn(string $columnName): ArrayParameterType
+    {
+        return ArrayParameterTypeConverter::fromParameterType(
+            $this->getBindingTypeForColumn($columnName)
+        );
     }
 
     public function setTranslationSchemaMetadata(TranslationDoctrineSchemaMetadataInterface $translationMetadata): void
