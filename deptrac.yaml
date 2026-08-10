@@ -1,26 +1,46 @@
 deptrac:
     paths:
         - ./src
+        - ./tests
     layers:
         - name: Bundle
           collectors:
-              - type: directory
-                value: bundle/.*
+              - type: bool
+                must:
+                    - type: directory
+                      value: src/bundle/.*
+                must_not:
+                    - type: layer
+                      value: InternalContracts
+              - type: bool
+                must:
+                    - type: directory
+                      value: src/lib/.*
+                must_not:
+                    - type: layer
+                      value: InternalContracts
         - name: Contracts
           collectors:
               - type: directory
-                value: contracts/.*
-        - name: Library
+                value: src/contracts/.*
+        - name: InternalContracts
           collectors:
               - type: directory
-                value: lib/.*
+                value: src/internal-contracts/.*
+              - type: attribute
+                value: InternalContract
+        - name: Test
+          collectors:
+              - type: directory
+                value: tests/.*
     ruleset:
         Bundle:
+            - Contracts
+            - InternalContracts
+        Contracts: ~
+        InternalContracts:
+            - Contracts
+        Test:
             - Bundle
             - Contracts
-            - Library
-        Contracts:
-            - Contracts
-        Library:
-            - Contracts
-            - Library
+            - InternalContracts
