@@ -10,13 +10,13 @@ on:
 jobs:
     cs-fix:
         name: Run code style check
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         strategy:
             matrix:
                 php:
-                    - '8.3'
+                    - '8.4'
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
@@ -30,14 +30,14 @@ jobs:
 
     deptrac:
         name: Deptrac
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         strategy:
             fail-fast: false
             matrix:
                 php:
-                    - '8.3'
+                    - '8.4'
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   name: Install Composer dependencies
                 uses: ibexa/gh-workflows/actions/composer-install@main
@@ -52,18 +52,17 @@ jobs:
 
     tests:
         name: Tests
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         timeout-minutes: 10
 
         strategy:
             fail-fast: false
             matrix:
                 php:
-                    - '8.3'
                     - '8.4'
 
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   name: Setup PHP Action
                 uses: shivammathur/setup-php@v2
@@ -102,17 +101,16 @@ jobs:
                     --health-timeout 5s
                     --health-retries 5
                     --tmpfs /var/lib/postgresql/data
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         timeout-minutes: 20
 
         strategy:
             matrix:
                 php:
-                    - '8.3'
                     - '8.4'
 
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   name: Setup PHP Action
                 uses: shivammathur/setup-php@v2
@@ -154,17 +152,16 @@ jobs:
                     --health-timeout=5s
                     --health-retries=5
                     --tmpfs=/var/lib/mysql
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         timeout-minutes: 20
 
         strategy:
             matrix:
                 php:
-                    - '8.3'
                     - '8.4'
 
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   name: Setup PHP Action
                 uses: shivammathur/setup-php@v2
