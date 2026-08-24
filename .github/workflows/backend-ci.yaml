@@ -80,7 +80,7 @@ jobs:
                     --health-retries 5
                     --tmpfs /var/lib/postgresql
         runs-on: "ubuntu-26.04"
-        timeout-minutes: 60
+        timeout-minutes: 20
 
         strategy:
             fail-fast: false
@@ -131,7 +131,7 @@ jobs:
                     --health-retries=5
                     --tmpfs=/var/lib/mysql
         runs-on: "ubuntu-26.04"
-        timeout-minutes: 60
+        timeout-minutes: 20
 
         strategy:
             fail-fast: false
