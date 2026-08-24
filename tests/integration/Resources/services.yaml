@@ -11,3 +11,7 @@ services:
     Ibexa\Tests\Integration\CorePersistence\Fixtures\Relationship1Gateway: ~
 
     Ibexa\Tests\Integration\CorePersistence\Fixtures\Relationship2Gateway: ~
+
+    Ibexa\Tests\Integration\CorePersistence\Fixtures\ArticleTranslationGateway: ~
+
+    Ibexa\Tests\Integration\CorePersistence\Fixtures\ArticleGateway: ~

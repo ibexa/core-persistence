@@ -93,7 +93,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
             return $this->handleRelationshipComparison($column, $comparison);
         }
 
-        if ($this->schemaMetadata->isTranslatedColumn($column)) {
+        if (!$this->schemaMetadata->hasColumn($column) && $this->schemaMetadata->isTranslatedColumn($column)) {
             return $this->handleTranslation($comparison);
         }
 
