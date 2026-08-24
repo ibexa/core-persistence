@@ -1,22 +1,21 @@
-name: Backend build
+name: CI
 
 on:
     push:
         branches:
-            - main
             - '[0-9]+.[0-9]+'
     pull_request: ~
 
 jobs:
     cs-fix:
         name: Run code style check
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         strategy:
             matrix:
                 php:
                     - '8.1'
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
@@ -29,9 +28,9 @@ jobs:
                 run: composer run-script check-cs -- --format=checkstyle | cs2pr
 
     tests:
-        name: Tests
-        runs-on: "ubuntu-22.04"
-        timeout-minutes: 10
+        name: Unit tests & SQLite integration tests
+        runs-on: "ubuntu-26.04"
+        timeout-minutes: 15
 
         strategy:
             fail-fast: false
@@ -42,14 +41,7 @@ jobs:
                     - '8.4'
 
         steps:
-            -   uses: actions/checkout@v5
-
-            -   name: Setup PHP Action
-                uses: shivammathur/setup-php@v2
-                with:
-                    php-version: ${{ matrix.php }}
-                    coverage: none
-                    extensions: pdo_sqlite, gd
+            -   uses: actions/checkout@v7
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
@@ -64,15 +56,18 @@ jobs:
             -   name: Run PHPStan analysis
                 run: composer run-script phpstan
 
-            -   name: Run test suite
-                run: composer run-script --timeout=600 test
+            -   name: Run unit test suite
+                run: composer run-script test
+
+            -   name: Run integration test suite
+                run: composer run-script test-integration
 
     integration-tests-postgres:
         name: PostgreSQL integration tests
         needs: tests
         services:
             postgres:
-                image: postgres:11
+                image: ${{ matrix.image }}
                 ports:
                     - 5432
                 env:
@@ -84,26 +79,22 @@ jobs:
                     --health-timeout 5s
                     --health-retries 5
                     --tmpfs /var/lib/postgresql/data
-        runs-on: "ubuntu-22.04"
-        timeout-minutes: 20
+        runs-on: "ubuntu-26.04"
+        timeout-minutes: 60
 
         strategy:
+            fail-fast: false
             matrix:
                 php:
                     - '7.4'
                     - '8.3'
                     - '8.4'
+                image:
+                    - 'postgres:14'
+                    - 'postgres:18'
 
         steps:
-            -   uses: actions/checkout@v5
-
-            -   name: Setup PHP Action
-                uses: shivammathur/setup-php@v2
-                with:
-                    php-version: ${{ matrix.php }}
-                    coverage: none
-                    extensions: pdo_pgsql, gd
-                    tools: cs2pr
+            -   uses: actions/checkout@v7
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
@@ -115,10 +106,9 @@ jobs:
             -   name: Setup problem matchers for PHPUnit
                 run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-            -   name: Run integration test suite on Postgres
-                run: composer run-script --timeout=600 test-integration
+            -   name: Run integration test suite vs Postgresql
+                run: composer run-script test-integration
                 env:
-                    SEARCH_ENGINE: legacy
                     DATABASE_URL: "pgsql://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/testdb?server_version=10"
 
     integration-tests-mysql:
@@ -126,7 +116,7 @@ jobs:
         needs: tests
         services:
             mysql:
-                image: mysql:8.0
+                image: ${{ matrix.image }}
                 ports:
                     - 3306/tcp
                 env:
@@ -140,26 +130,22 @@ jobs:
                     --health-timeout=5s
                     --health-retries=5
                     --tmpfs=/var/lib/mysql
-        runs-on: "ubuntu-22.04"
-        timeout-minutes: 20
+        runs-on: "ubuntu-26.04"
+        timeout-minutes: 60
 
         strategy:
+            fail-fast: false
             matrix:
                 php:
                     - '7.4'
                     - '8.3'
                     - '8.4'
+                image:
+                    - 'mysql:8.0'
+                    - 'mysql:8.4'
 
         steps:
-            -   uses: actions/checkout@v5
-
-            -   name: Setup PHP Action
-                uses: shivammathur/setup-php@v2
-                with:
-                    php-version: ${{ matrix.php }}
-                    coverage: none
-                    extensions: pdo_mysql, gd
-                    tools: cs2pr
+            -   uses: actions/checkout@v7
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
@@ -172,7 +158,6 @@ jobs:
                 run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
             -   name: Run integration test suite vs MySQL
-                run: composer run-script --timeout=600 test-integration
+                run: composer run-script test-integration
                 env:
-                    SEARCH_ENGINE: legacy
                     DATABASE_URL: "mysql://mysql:mysql@127.0.0.1:${{ job.services.mysql.ports[3306] }}/testdb"
