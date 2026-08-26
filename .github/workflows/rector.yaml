@@ -10,13 +10,13 @@ on:
 jobs:
     rector:
         name: Run rector
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         strategy:
             matrix:
                 php:
-                    - '8.3'
+                    - '8.4'
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
