@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Ibexa\Tests\Integration\CorePersistence;
 
 use Ibexa\Bundle\CorePersistence\IbexaCorePersistenceBundle;
+use Ibexa\Bundle\Test\Core\IbexaTestCoreBundle;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
 use Ibexa\Contracts\Test\Core\IbexaTestKernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -18,6 +19,8 @@ final class Kernel extends IbexaTestKernel
     public function registerBundles(): iterable
     {
         yield from parent::registerBundles();
+
+        yield new IbexaTestCoreBundle();
 
         yield new IbexaCorePersistenceBundle();
     }
