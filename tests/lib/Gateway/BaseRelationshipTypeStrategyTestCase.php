@@ -25,7 +25,7 @@ abstract class BaseRelationshipTypeStrategyTestCase extends TestCase
     {
         $this->connection = $this->createMock(Connection::class);
         $this->connection
-            ->method('getExpressionBuilder')
+            ->method('createExpressionBuilder')
             ->willReturn(new ExpressionBuilder($this->connection));
 
         $platform = $this->getMockBuilder(AbstractPlatform::class)

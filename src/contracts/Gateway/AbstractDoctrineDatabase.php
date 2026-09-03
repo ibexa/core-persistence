@@ -14,6 +14,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use InvalidArgumentException;
+use LogicException;
 
 /**
  * @internal
@@ -61,6 +62,9 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
+     * Inserts a row and returns its identifier, taking it from $data when the caller supplied it
+     * and from the connection otherwise.
+     *
      * @param array<string, mixed> $data
      *
      * @throws \Doctrine\DBAL\Exception
@@ -68,12 +72,49 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     protected function doInsert(array $data): int
     {
         $metadata = $this->getMetadata();
+        $identifierColumns = $metadata->getIdentifierColumns();
+
+        if (count($identifierColumns) !== 1) {
+            throw new LogicException(sprintf(
+                '"%s" does not have a single identifier column to return. Use doInsertWithoutIdentity() instead.',
+                $metadata->getTableName(),
+            ));
+        }
+
+        $this->executeInsert($data);
+
+        $identifierColumn = $identifierColumns[0];
+
+        return isset($data[$identifierColumn])
+            ? (int)$data[$identifierColumn]
+            : (int)$this->connection->lastInsertId();
+    }
+
+    /**
+     * Inserts a row into a table that has no single identifier column to return, such as one keyed
+     * by a composite primary key.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @throws \Doctrine\DBAL\Exception
+     */
+    protected function doInsertWithoutIdentity(array $data): void
+    {
+        $this->executeInsert($data);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function executeInsert(array $data): void
+    {
+        $metadata = $this->getMetadata();
         $data = $metadata->convertToDatabaseValues($data);
         $types = $metadata->getBindingTypesForData($data);
 
         $this->connection->insert($metadata->getTableName(), $data, $types);
-
-        return (int)$this->connection->lastInsertId();
     }
 
     /**
@@ -358,7 +399,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
             } elseif (is_array($value)) {
                 $parameter = $qb->createPositionalParameter(
                     $value,
-                    $columnBinding + Connection::ARRAY_PARAM_OFFSET
+                    $metadata->getArrayBindingTypeForColumn($column)
                 );
 
                 $subquery->andWhere($qb->expr()->in($fullColumnName, $parameter));
@@ -390,7 +431,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         if (is_array($value)) {
             $parameter = $qb->createPositionalParameter(
                 $value,
-                $columnBinding + Connection::ARRAY_PARAM_OFFSET
+                $metadata->getArrayBindingTypeForColumn($column)
             );
 
             return $qb->expr()->in($fullColumnName, $parameter);

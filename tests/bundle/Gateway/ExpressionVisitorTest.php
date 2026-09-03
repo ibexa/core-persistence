@@ -10,7 +10,9 @@ namespace Ibexa\Tests\Bundle\CorePersistence\Gateway;
 
 use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\Common\Collections\Expr\CompositeExpression;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -45,7 +47,7 @@ final class ExpressionVisitorTest extends TestCase
     {
         $this->connection = $this->createMock(Connection::class);
 
-        $this->connection->method('getExpressionBuilder')
+        $this->connection->method('createExpressionBuilder')
             ->willReturn(new ExpressionBuilder($this->connection));
 
         $platform = $this->getMockBuilder(AbstractPlatform::class)
@@ -55,6 +57,14 @@ final class ExpressionVisitorTest extends TestCase
             ->willReturn($platform);
 
         $this->schemaMetadata = $this->createMock(DoctrineSchemaMetadataInterface::class);
+
+        $this->schemaMetadata
+            ->method('getBindingTypeForColumn')
+            ->willReturn(ParameterType::STRING);
+
+        $this->schemaMetadata
+            ->method('getArrayBindingTypeForColumn')
+            ->willReturn(ArrayParameterType::STRING);
 
         $this->registry = $this->createMock(DoctrineSchemaMetadataRegistryInterface::class);
         $this->registry->method('getMetadataForTable')
@@ -83,7 +93,7 @@ final class ExpressionVisitorTest extends TestCase
             new Parameter(
                 'field_0',
                 'value',
-                0,
+                ParameterType::STRING,
             ),
         ], $this->expressionVisitor->getParameters());
     }
@@ -101,7 +111,7 @@ final class ExpressionVisitorTest extends TestCase
             new Parameter(
                 'field_0',
                 'value',
-                0,
+                ParameterType::STRING,
             ),
         ], $this->expressionVisitor->getParameters());
     }
@@ -126,12 +136,12 @@ final class ExpressionVisitorTest extends TestCase
             new Parameter(
                 'field_0',
                 'value',
-                0,
+                ParameterType::STRING,
             ),
             new Parameter(
                 'field_2_1',
                 'value_2',
-                0,
+                ParameterType::STRING,
             ),
         ], $this->expressionVisitor->getParameters());
     }
@@ -278,37 +288,37 @@ final class ExpressionVisitorTest extends TestCase
         yield [
             new Comparison('relationship_1.field', '=', 'value'),
             'relationship_table_name.field = :field_0',
-            [new Parameter('field_0', 'value', 0)],
+            [new Parameter('field_0', 'value', ParameterType::STRING)],
         ];
 
         yield [
             new Comparison('relationship_1.field', 'IN', ['value', 'value_2']),
             'relationship_table_name.field IN (:field_0)',
-            [new Parameter('field_0', ['value', 'value_2'], 100)],
+            [new Parameter('field_0', ['value', 'value_2'], ArrayParameterType::STRING)],
         ];
 
         yield [
             new Comparison('relationship_1.field', '=', ['value', 'value_2']),
             'relationship_table_name.field IN (:field_0)',
-            [new Parameter('field_0', ['value', 'value_2'], 100)],
+            [new Parameter('field_0', ['value', 'value_2'], ArrayParameterType::STRING)],
         ];
 
         yield [
             new Comparison('relationship_1.field', 'STARTS_WITH', 'value'),
             'relationship_table_name.field LIKE :field_0',
-            [new Parameter('field_0', 'value%', 0)],
+            [new Parameter('field_0', 'value%', ParameterType::STRING)],
         ];
 
         yield [
             new Comparison('relationship_1.field', 'ENDS_WITH', 'value'),
             'relationship_table_name.field LIKE :field_0',
-            [new Parameter('field_0', '%value', 0)],
+            [new Parameter('field_0', '%value', ParameterType::STRING)],
         ];
 
         yield [
             new Comparison('relationship_1.field', 'CONTAINS', 'value'),
             'relationship_table_name.field LIKE :field_0',
-            [new Parameter('field_0', '%value%', 0)],
+            [new Parameter('field_0', '%value%', ParameterType::STRING)],
         ];
     }
 
@@ -394,6 +404,14 @@ final class ExpressionVisitorTest extends TestCase
             ->willReturn($inheritanceMetadata);
 
         $inheritanceMetadata
+            ->method('getBindingTypeForColumn')
+            ->willReturn(ParameterType::STRING);
+
+        $inheritanceMetadata
+            ->method('getArrayBindingTypeForColumn')
+            ->willReturn(ArrayParameterType::STRING);
+
+        $inheritanceMetadata
             ->expects(self::once())
             ->method('getTableName')
             ->willReturn('inheritance_table');
@@ -423,6 +441,14 @@ final class ExpressionVisitorTest extends TestCase
         $relationshipMetadata
             ->method('getIdentifierColumn')
             ->willReturn('id');
+
+        $relationshipMetadata
+            ->method('getBindingTypeForColumn')
+            ->willReturn(ParameterType::STRING);
+
+        $relationshipMetadata
+            ->method('getArrayBindingTypeForColumn')
+            ->willReturn(ArrayParameterType::STRING);
 
         return $relationshipMetadata;
     }

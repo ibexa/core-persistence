@@ -8,7 +8,10 @@ declare(strict_types=1);
 
 namespace Ibexa\CorePersistence\Gateway;
 
-use  Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\Exception\NonUniqueAlias;
+use Doctrine\DBAL\Query\Exception\UnknownAlias;
+use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\QueryException;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use LogicException;
 
@@ -17,6 +20,19 @@ use LogicException;
  */
 final class SubSelectRelationshipTypeStrategy implements RelationshipTypeStrategyInterface
 {
+    private function isQueryInitialised(QueryBuilder $queryBuilder): bool
+    {
+        try {
+            $queryBuilder->getSQL();
+
+            return true;
+        } catch (UnknownAlias | NonUniqueAlias) {
+            return true;
+        } catch (QueryException) {
+            return false;
+        }
+    }
+
     public function handleRelationshipType(
         QueryBuilder $queryBuilder,
         DoctrineRelationshipInterface $relationship,
@@ -24,7 +40,7 @@ final class SubSelectRelationshipTypeStrategy implements RelationshipTypeStrateg
         string $fromTable,
         string $toTable
     ): void {
-        if (empty($queryBuilder->getQueryPart('select'))) {
+        if (!$this->isQueryInitialised($queryBuilder)) {
             $queryBuilder
                 ->select($toTable . '.' . $relationship->getRelatedClassIdColumn())
                 ->from($toTable);
@@ -48,7 +64,7 @@ final class SubSelectRelationshipTypeStrategy implements RelationshipTypeStrateg
         string $fullColumnName,
         string $placeholder
     ): QueryBuilder {
-        if (empty($queryBuilder->getQueryPart('select'))) {
+        if (!$this->isQueryInitialised($queryBuilder)) {
             throw new LogicException(
                 'Query is not initialized.',
             );
