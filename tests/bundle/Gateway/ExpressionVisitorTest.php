@@ -439,5 +439,13 @@ final class ExpressionVisitorTest extends TestCase
                 ...array_map(static fn (string $fieldName): IsIdentical => self::identicalTo($fieldName), $fields),
             ))
             ->willReturn(true);
+
+        $metadata
+            ->expects(self::atLeastOnce())
+            ->method('convertToDatabaseValue')
+            ->with(self::logicalOr(
+                ...array_map(static fn (string $fieldName): IsIdentical => self::identicalTo($fieldName), $fields),
+            ))
+            ->willReturnArgument(1);
     }
 }

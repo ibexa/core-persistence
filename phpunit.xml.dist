@@ -12,4 +12,10 @@
             <directory>tests/lib</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="baselineFile=./tests/allowed.json" />
+    </php>
+    <listeners>
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
+    </listeners>
 </phpunit>
