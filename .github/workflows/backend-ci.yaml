@@ -1,36 +1,40 @@
-name: Backend build
+name: Backend CI
 
 on:
     push:
         branches:
-            - main
             - '[0-9]+.[0-9]+'
     pull_request: ~
+    workflow_dispatch: ~
 
 jobs:
     cs-fix:
         name: Run code style check
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         strategy:
             matrix:
                 php:
                     - '8.1'
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
+                    php-version: ${{ matrix.php }}
                     gh-client-id: ${{ secrets.AUTOMATION_CLIENT_ID }}
                     gh-client-secret: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
                     satis-network-key: ${{ secrets.SATIS_NETWORK_KEY }}
                     satis-network-token: ${{ secrets.SATIS_NETWORK_TOKEN }}
 
             -   name: Run code style check
-                run: composer run-script check-cs -- --format=checkstyle | cs2pr
+                shell: bash
+                run: |
+                    set -euo pipefail
+                    composer run-script check-cs -- --format=checkstyle | cs2pr
 
     tests:
         name: Tests
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         timeout-minutes: 10
 
         strategy:
@@ -42,7 +46,7 @@ jobs:
                     - '8.4'
 
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   name: Setup PHP Action
                 uses: shivammathur/setup-php@v2
@@ -53,6 +57,7 @@ jobs:
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
+                    php-version: ${{ matrix.php }}
                     gh-client-id: ${{ secrets.AUTOMATION_CLIENT_ID }}
                     gh-client-secret: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
                     satis-network-key: ${{ secrets.SATIS_NETWORK_KEY }}
@@ -84,7 +89,7 @@ jobs:
                     --health-timeout 5s
                     --health-retries 5
                     --tmpfs /var/lib/postgresql/data
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         timeout-minutes: 20
 
         strategy:
@@ -95,7 +100,7 @@ jobs:
                     - '8.4'
 
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   name: Setup PHP Action
                 uses: shivammathur/setup-php@v2
@@ -107,6 +112,7 @@ jobs:
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
+                    php-version: ${{ matrix.php }}
                     gh-client-id: ${{ secrets.AUTOMATION_CLIENT_ID }}
                     gh-client-secret: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
                     satis-network-key: ${{ secrets.SATIS_NETWORK_KEY }}
@@ -140,7 +146,7 @@ jobs:
                     --health-timeout=5s
                     --health-retries=5
                     --tmpfs=/var/lib/mysql
-        runs-on: "ubuntu-22.04"
+        runs-on: "ubuntu-26.04"
         timeout-minutes: 20
 
         strategy:
@@ -151,7 +157,7 @@ jobs:
                     - '8.4'
 
         steps:
-            -   uses: actions/checkout@v5
+            -   uses: actions/checkout@v7
 
             -   name: Setup PHP Action
                 uses: shivammathur/setup-php@v2
@@ -163,6 +169,7 @@ jobs:
 
             -   uses: ibexa/gh-workflows/actions/composer-install@main
                 with:
+                    php-version: ${{ matrix.php }}
                     gh-client-id: ${{ secrets.AUTOMATION_CLIENT_ID }}
                     gh-client-secret: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
                     satis-network-key: ${{ secrets.SATIS_NETWORK_KEY }}
