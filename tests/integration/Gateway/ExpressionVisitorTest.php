@@ -20,6 +20,8 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
 {
     private ExpressionVisitor $expressionVisitor;
 
+    private ExpressionVisitor $articleExpressionVisitor;
+
     protected function setUp(): void
     {
         $core = $this->getIbexaTestCore();
@@ -32,6 +34,13 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
             'foo_table_alias',
             new RelationshipTypeStrategyRegistry(),
             $connection
+        );
+        $this->articleExpressionVisitor = new ExpressionVisitor(
+            new QueryBuilder($connection),
+            $registry,
+            'article',
+            'article',
+            new RelationshipTypeStrategyRegistry()
         );
     }
 
@@ -83,6 +92,32 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
             ),
             'relationship_2_table_name.relationship_2_foo < :relationship_2_foo_0',
         ];
+    }
+
+    /**
+     * "id" exists on both the "article" table and the "article_translation" table (each has its
+     * own primary key). Filtering by "id" must compare against the main table's primary key,
+     * never against translation-row ids.
+     */
+    public function testSharedColumnTargetsMainTable(): void
+    {
+        $result = $this->articleExpressionVisitor->dispatch(new Comparison('id', '=', 1));
+
+        self::assertSame('article.id = :id_0', $result);
+    }
+
+    /**
+     * "name" exists only on the "article_translation" table, so filtering by it must keep being
+     * resolved through the translation subquery.
+     */
+    public function testTranslationColumnTargetsTranslationTable(): void
+    {
+        $result = $this->articleExpressionVisitor->dispatch(new Comparison('name', '=', 'bar'));
+
+        $expectedTranslationSubquery = 'SELECT translation.article_id FROM article_translation translation'
+            . ' WHERE (translation.article_id = article.id) AND (translation.name = :name_0)';
+
+        self::assertSame("article.id IN ({$expectedTranslationSubquery})", $result);
     }
 
     public function testInvalidRelationshipTraversal(): void
