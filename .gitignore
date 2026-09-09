@@ -1,6 +1,9 @@
+/.deptrac.cache
 /.php-cs-fixer.cache
+/.phpunit.cache
 /.phpunit.result.cache
 /composer.lock
 /node_modules/
 /vendor
 /yarn.lock
+/var

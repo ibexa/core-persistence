@@ -1,0 +1,10 @@
+deptrac:
+  skip_violations:
+    Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase:
+      - Ibexa\CorePersistence\Gateway\ExpressionVisitor
+      - Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry
+    Ibexa\Contracts\CorePersistence\Gateway\AbstractTranslationGateway:
+      - Ibexa\CorePersistence\Gateway\ExpressionVisitor
+      - Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry
+    Ibexa\CorePersistence\Gateway\DoctrineSchemaMetadataRegistry:
+      - Ibexa\Bundle\CorePersistence\DependencyInjection\IbexaCorePersistenceExtension

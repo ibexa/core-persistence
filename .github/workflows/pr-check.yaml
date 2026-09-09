@@ -1,12 +1,14 @@
+
 name: PR check
 on:
-    pull_request:
-        types:
-            - opened
-            - synchronize
-            - reopened
-            - edited
+  pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+      - edited
 
 jobs:
-    test-base-branch:
-        uses: ibexa/gh-workflows/.github/workflows/pr-check.yml@main
+  test-base-branch:
+    if: github.event.repository.name != 'bundle-template-internal'
+    uses: ibexa/gh-workflows/.github/workflows/pr-check.yml@main

@@ -1,0 +1,48 @@
+- color: d73a4a
+  description: Something isn't working
+  name: Bug
+- color: 0075ca
+  description: The changes require some documentation
+  name: Doc needed
+- color: cfd3d7
+  description: This issue or pull request already exists
+  name: Duplicate
+- color: "000000"
+  description: ""
+  name: DX
+- color: 6f00ff
+  description: PR should be merged in a fast-forward way
+  name: Fast-forward merge
+- color: b6e1fc
+  description: New feature request
+  name: Feature
+- color: 00bfff
+  description: ""
+  name: Improvement
+- color: e6e6e6
+  description: This doesn't seem right
+  name: Invalid
+- color: 00ff7f
+  description: ""
+  name: QA approved
+- color: 9370db
+  description: Further information is requested
+  name: Question
+- color: adff2f
+  description: ""
+  name: Ready for MERGE
+- color: ff66cc
+  description: ""
+  name: Ready for QA
+- color: fff505
+  description: ""
+  name: Ready for review
+- color: ffd700
+  description: ""
+  name: Rebase required
+- color: ffffff
+  description: This will not be worked on
+  name: wontfix
+- color: fcc67b
+  description: ""
+  name: Work in progress
