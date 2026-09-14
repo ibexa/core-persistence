@@ -1,0 +1,12 @@
+[
+    {
+        "location": "Doctrine\\DBAL\\Platforms\\PostgreSqlPlatform",
+        "message": "Using ${var} in strings is deprecated, use {$var} instead",
+        "count": 1
+    },
+    {
+        "location": "Ibexa\\Tests\\CorePersistence\\Gateway\\AbstractDoctrineDatabaseTest::testDateTimeQueries",
+        "message": "The Doctrine\\DBAL\\Driver\\ResultStatement::fetch method is deprecated (Use fetchNumeric(), fetchAssociative() or fetchOne() instead.).",
+        "count": 1
+    }
+]

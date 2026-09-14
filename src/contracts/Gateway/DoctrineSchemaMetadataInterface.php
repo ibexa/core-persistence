@@ -68,6 +68,13 @@ interface DoctrineSchemaMetadataInterface
     public function convertToPHPValues(array $data): array;
 
     /**
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public function convertToPHPValue(string $columnName, $value);
+
+    /**
      * Similarly to Doctrine\DBAL\Types\Type::convertToDatabaseValue, converts PHP representation to database
      * representation.
      *
@@ -80,6 +87,13 @@ interface DoctrineSchemaMetadataInterface
      * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
      */
     public function convertToDatabaseValues(array $data): array;
+
+    /**
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public function convertToDatabaseValue(string $column, $value);
 
     /**
      * @param array<string, mixed> $data
