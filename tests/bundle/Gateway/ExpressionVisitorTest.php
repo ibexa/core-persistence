@@ -25,6 +25,7 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterf
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\Parameter;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\TestCase;
 
@@ -155,7 +156,7 @@ final class ExpressionVisitorTest extends TestCase
     public function testFieldFromMissingRelationship(): void
     {
         /** @var \Exception $exception */
-        $exception = $this->createMock(RuntimeMappingExceptionInterface::class);
+        $exception = $this->createStub(RuntimeMappingExceptionInterface::class);
         $this->schemaMetadata
             ->expects(self::once())
             ->method('getRelationshipByForeignProperty')
@@ -236,10 +237,9 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @dataProvider provideForFieldFromInheritedRelationship
-     *
      * @phpstan-param array<\Ibexa\CorePersistence\Gateway\Parameter> $parameters
      */
+    #[DataProvider('provideForFieldFromInheritedRelationship')]
     public function testFieldFromInheritedRelationship(
         Comparison $comparison,
         string $expectedResult,
@@ -455,7 +455,7 @@ final class ExpressionVisitorTest extends TestCase
 
     /**
      * @param \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject $metadata
-     * @param array<string> $fields
+     * @param list<string> $fields
      */
     private function configureFieldInMetadata(DoctrineSchemaMetadataInterface $metadata, array $fields): void
     {

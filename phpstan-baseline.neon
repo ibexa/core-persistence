@@ -7,7 +7,7 @@ parameters:
 			path: src/contracts/Gateway/DoctrineOneToManyRelationship.php
 
 		-
-			message: '#^PHPDoc tag @var with type Exception is not subtype of native type PHPUnit\\Framework\\MockObject\\MockObject\.$#'
+			message: '#^PHPDoc tag @var with type Exception is not subtype of native type PHPUnit\\Framework\\MockObject\\Stub\.$#'
 			identifier: varTag.nativeType
 			count: 1
 			path: tests/bundle/Gateway/ExpressionVisitorTest.php

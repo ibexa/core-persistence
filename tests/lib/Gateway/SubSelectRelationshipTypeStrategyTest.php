@@ -12,10 +12,9 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\CorePersistence\Gateway\SubSelectRelationshipTypeStrategy;
 use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Ibexa\CorePersistence\Gateway\SubSelectRelationshipTypeStrategy
- */
+#[CoversClass(SubSelectRelationshipTypeStrategy::class)]
 final class SubSelectRelationshipTypeStrategyTest extends BaseRelationshipTypeStrategyTestCase
 {
     private SubSelectRelationshipTypeStrategy $strategy;
