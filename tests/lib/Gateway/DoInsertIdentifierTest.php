@@ -10,14 +10,14 @@ namespace Ibexa\Tests\CorePersistence\Gateway;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
 use Ibexa\Tests\CorePersistence\Stub\IdentifierProbeGateway;
 use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase
- */
+#[CoversClass(AbstractDoctrineDatabase::class)]
 final class DoInsertIdentifierTest extends TestCase
 {
     /** @var \Doctrine\DBAL\Connection&\PHPUnit\Framework\MockObject\MockObject */
@@ -71,7 +71,7 @@ final class DoInsertIdentifierTest extends TestCase
     {
         return new IdentifierProbeGateway(
             $this->connection,
-            $this->createMock(DoctrineSchemaMetadataRegistryInterface::class),
+            $this->createStub(DoctrineSchemaMetadataRegistryInterface::class),
             $identifierColumns,
         );
     }

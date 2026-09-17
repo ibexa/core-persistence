@@ -11,10 +11,9 @@ namespace Ibexa\Tests\CorePersistence\Gateway;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\CorePersistence\Gateway\JoinedRelationshipTypeStrategy;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Ibexa\CorePersistence\Gateway\JoinedRelationshipTypeStrategy
- */
+#[CoversClass(JoinedRelationshipTypeStrategy::class)]
 final class JoinedRelationshipTypeStrategyTest extends BaseRelationshipTypeStrategyTestCase
 {
     private JoinedRelationshipTypeStrategy $strategy;

@@ -15,6 +15,7 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterf
 use Ibexa\Contracts\Test\Core\IbexaKernelTestCase;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class ExpressionVisitorTest extends IbexaKernelTestCase
 {
@@ -40,7 +41,8 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
             $registry,
             'article',
             'article',
-            new RelationshipTypeStrategyRegistry()
+            new RelationshipTypeStrategyRegistry(),
+            $connection
         );
     }
 
@@ -60,9 +62,7 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
         $this->expressionVisitor->dispatch(new Comparison('non_existent_field', '=', 'bar'));
     }
 
-    /**
-     * @dataProvider provideForTraversingRelationships
-     */
+    #[DataProvider('provideForTraversingRelationships')]
     public function testTraversingRelationships(Comparison $expr, string $expectedResult): void
     {
         // Note: This assumes relationship tables are joined before being used.
