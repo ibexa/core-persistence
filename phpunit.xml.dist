@@ -4,10 +4,9 @@
          bootstrap="vendor/autoload.php"
          failOnWarning="true"
          colors="true"
-         cacheDirectory=".phpunit.cache">
-    <php>
-        <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=0&amp;max[direct]=0&amp;max[indirect]=15&amp;verbose=0"/>
-    </php>
+         cacheDirectory=".phpunit.cache"
+         failOnDeprecation="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true">
     <extensions>
         <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension"/>
     </extensions>
@@ -19,4 +18,9 @@
             <directory>tests/lib</directory>
         </testsuite>
     </testsuites>
+    <source baseline="phpunit.baseline.xml" ignoreIndirectDeprecations="false" ignoreSuppressionOfDeprecations="true">
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
 </phpunit>
