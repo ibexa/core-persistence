@@ -156,7 +156,7 @@ final class ExpressionVisitorTest extends TestCase
     public function testFieldFromMissingRelationship(): void
     {
         /** @var \Exception $exception */
-        $exception = $this->createStub(RuntimeMappingExceptionInterface::class);
+        $exception = self::createStub(RuntimeMappingExceptionInterface::class);
         $this->schemaMetadata
             ->expects(self::once())
             ->method('getRelationshipByForeignProperty')

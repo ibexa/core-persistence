@@ -32,7 +32,7 @@ final class RelationshipTypeStrategyRegistryTest extends TestCase
         $this->expectExceptionMessage('Unhandled relationship metadata. Expected one of "Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship", "Ibexa\Contracts\CorePersistence\Gateway\DoctrineOneToManyRelationship". Received "Ibexa\Tests\CorePersistence\Stub\InvalidDoctrineRelationship"');
 
         $this->registry->handleRelationshipType(
-            new QueryBuilder($this->createStub(Connection::class)),
+            new QueryBuilder(self::createStub(Connection::class)),
             new InvalidDoctrineRelationship(),
             'root_table_alias',
             'from_table',
@@ -47,7 +47,7 @@ final class RelationshipTypeStrategyRegistryTest extends TestCase
 
         $this->registry->handleRelationshipTypeQuery(
             new InvalidDoctrineRelationship(),
-            $this->createStub(QueryBuilder::class),
+            self::createStub(QueryBuilder::class),
             'related_class_id_column',
             'related_class_id_column_0'
         );
