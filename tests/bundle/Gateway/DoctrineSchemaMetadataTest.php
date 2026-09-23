@@ -21,7 +21,7 @@ final class DoctrineSchemaMetadataTest extends TestCase
     protected function setUp(): void
     {
         $this->metadata = new DoctrineSchemaMetadata(
-            $this->createStub(Connection::class),
+            self::createStub(Connection::class),
             'stdClass',
             'std_class_table',
             [

@@ -71,7 +71,7 @@ final class DoInsertIdentifierTest extends TestCase
     {
         return new IdentifierProbeGateway(
             $this->connection,
-            $this->createStub(DoctrineSchemaMetadataRegistryInterface::class),
+            self::createStub(DoctrineSchemaMetadataRegistryInterface::class),
             $identifierColumns,
         );
     }
