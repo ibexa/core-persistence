@@ -18,7 +18,9 @@
     },
     "require-dev": {
         "dama/doctrine-test-bundle": "^6.7",
+        "doctrine/doctrine-migrations-bundle": "^3.2",
         "ibexa/code-style": "^1.1",
+        "ibexa/doctrine-migrations": "~4.6.x-dev",
         "ibexa/test-core": "~4.6.x-dev",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
