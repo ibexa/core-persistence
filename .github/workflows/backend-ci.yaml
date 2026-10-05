@@ -63,11 +63,9 @@ jobs:
                 run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
             -   name: Run PHPStan analysis
-                if: matrix.schema_builder_event
                 run: composer run-script phpstan
 
             -   name: Run unit test suite
-                if: matrix.schema_builder_event
                 run: composer run-script test
 
             -   name: Run integration test suite
