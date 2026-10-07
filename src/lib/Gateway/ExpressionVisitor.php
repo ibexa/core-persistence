@@ -15,7 +15,9 @@ use Doctrine\Common\Collections\Expr\Value;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\Query\QueryExpressionVisitor;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
+use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
@@ -26,7 +28,7 @@ use RuntimeException;
 /**
  * @internal
  *
- * Based on {@see \Doctrine\ORM\Query\QueryExpressionVisitor}.
+ * Based on {@see QueryExpressionVisitor}.
  */
 final class ExpressionVisitor extends BaseExpressionVisitor
 {
@@ -43,7 +45,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     private string $tableAlias;
 
-    /** @var list<\Ibexa\CorePersistence\Gateway\Parameter> */
+    /** @var list<Parameter> */
     private array $parameters = [];
 
     private DoctrineSchemaMetadataRegistryInterface $registry;
@@ -68,7 +70,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     }
 
     /**
-     * @return list<\Ibexa\CorePersistence\Gateway\Parameter>
+     * @return list<Parameter>
      */
     public function getParameters(): array
     {
@@ -81,7 +83,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     }
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      *
      * @return mixed
      */
@@ -161,10 +163,12 @@ final class ExpressionVisitor extends BaseExpressionVisitor
     }
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
-    private function handleRelationshipComparison(string $column, Comparison $comparison): string
-    {
+    private function handleRelationshipComparison(
+        string $column,
+        Comparison $comparison
+    ): string {
         $metadata = $this->schemaMetadata;
         $fromTable = $this->tableAlias;
         $toTable = null;

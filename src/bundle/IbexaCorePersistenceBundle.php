@@ -10,6 +10,4 @@ namespace Ibexa\Bundle\CorePersistence;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-final class IbexaCorePersistenceBundle extends Bundle
-{
-}
+final class IbexaCorePersistenceBundle extends Bundle {}

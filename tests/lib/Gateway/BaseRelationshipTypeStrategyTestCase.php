@@ -14,11 +14,12 @@ use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationship;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadata;
 use Ibexa\Tests\CorePersistence\Stub\RelationshipClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 abstract class BaseRelationshipTypeStrategyTestCase extends TestCase
 {
-    /** @var \Doctrine\DBAL\Connection&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var Connection&MockObject */
     protected Connection $connection;
 
     protected function setUp(): void

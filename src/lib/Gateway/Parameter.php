@@ -23,8 +23,11 @@ final class Parameter
     /**
      * @param mixed $value
      */
-    public function __construct(string $name, $value, int $type)
-    {
+    public function __construct(
+        string $name,
+        $value,
+        int $type
+    ) {
         $this->name = $name;
         $this->value = $value;
         $this->type = $type;

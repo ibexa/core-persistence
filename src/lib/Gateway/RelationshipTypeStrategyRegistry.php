@@ -19,7 +19,7 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
  */
 final class RelationshipTypeStrategyRegistry implements RelationshipTypeStrategyRegistryInterface
 {
-    /** @var array<\Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyInterface> */
+    /** @var array<RelationshipTypeStrategyInterface> */
     private array $strategies;
 
     public function __construct()
