@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\Contracts\CorePersistence\Gateway;
 
+use Doctrine\DBAL\Exception;
+use Ibexa\Contracts\CorePersistence\Exception\MappingException;
+
 /**
  * @template T of array
  *
@@ -28,7 +31,7 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function findByTranslatableId(int $id): array
@@ -41,8 +44,8 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
+     * @throws Exception
+     * @throws MappingException
      */
     public function countByTranslatableId(int $id): int
     {
@@ -53,7 +56,7 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function findByTranslatableIds(array $ids): array
     {
@@ -64,10 +67,13 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
-    public function insert(int $id, int $languageId, array $data): int
-    {
+    public function insert(
+        int $id,
+        int $languageId,
+        array $data
+    ): int {
         $data += [
             $this->getTranslatableIdColumn() => $id,
             $this->getLanguageIdColumn() => $languageId,
@@ -77,10 +83,13 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
-    public function update(int $id, int $languageId, array $data): void
-    {
+    public function update(
+        int $id,
+        int $languageId,
+        array $data
+    ): void {
         $criteria = [
             $this->getTranslatableIdColumn() => $id,
             $this->getLanguageIdColumn() => $languageId,
@@ -90,11 +99,13 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */
-    public function exists(int $id, int $languageId): bool
-    {
+    public function exists(
+        int $id,
+        int $languageId
+    ): bool {
         $result = $this->findOneBy([
             $this->getTranslatableIdColumn() => $id,
             $this->getLanguageIdColumn() => $languageId,
@@ -104,11 +115,14 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */
-    public function save(int $id, int $languageId, array $data): void
-    {
+    public function save(
+        int $id,
+        int $languageId,
+        array $data
+    ): void {
         if ($this->exists($id, $languageId)) {
             $this->update($id, $languageId, $data);
         } else {
@@ -117,10 +131,12 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
-    public function delete(int $id, int $languageId): void
-    {
+    public function delete(
+        int $id,
+        int $languageId
+    ): void {
         $criteria = [
             $this->getTranslatableIdColumn() => $id,
             $this->getLanguageIdColumn() => $languageId,
@@ -130,11 +146,13 @@ abstract class AbstractTranslationGateway extends AbstractDoctrineDatabase imple
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */
-    public function copy(int $fromId, int $toId): void
-    {
+    public function copy(
+        int $fromId,
+        int $toId
+    ): void {
         $translations = $this->findByTranslatableId($fromId);
 
         foreach ($translations as $translation) {

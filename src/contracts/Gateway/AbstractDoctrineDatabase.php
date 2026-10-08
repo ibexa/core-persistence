@@ -10,7 +10,11 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 
 use Doctrine\Common\Collections\Expr\Expression;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Ibexa\Contracts\CorePersistence\Exception\MappingException;
+use Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface;
 use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use InvalidArgumentException;
@@ -34,8 +38,10 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
     protected Connection $connection;
 
-    public function __construct(Connection $connection, DoctrineSchemaMetadataRegistryInterface $registry)
-    {
+    public function __construct(
+        Connection $connection,
+        DoctrineSchemaMetadataRegistryInterface $registry
+    ) {
         $this->connection = $connection;
         $this->registry = $registry;
     }
@@ -51,7 +57,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     * @throws MappingExceptionInterface
      */
     abstract protected function buildMetadata(): DoctrineSchemaMetadataInterface;
 
@@ -63,7 +69,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     /**
      * @param array<string, mixed> $data
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     protected function doInsert(array $data): int
     {
@@ -79,7 +85,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     /**
      * @param array<string, mixed> $criteria
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     protected function doDelete(array $criteria): void
     {
@@ -94,10 +100,12 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
      * @param array<string, mixed> $criteria
      * @param array<string, mixed> $data
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
-    protected function doUpdate(array $criteria, array $data): void
-    {
+    protected function doUpdate(
+        array $criteria,
+        array $data
+    ): void {
         $metadata = $this->getMetadata();
         $criteria = $metadata->convertToDatabaseValues($criteria);
         $data = $metadata->convertToDatabaseValues($data);
@@ -107,9 +115,9 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
+     * @throws MappingException
      */
     public function countAll(): int
     {
@@ -117,11 +125,11 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param Expression|array<string, Expression|scalar|array<scalar>|null> $criteria
      *
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
+     * @throws Exception
+     * @throws MappingException
      */
     public function countBy($criteria): int
     {
@@ -141,19 +149,25 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
-    public function findAll(?int $limit = null, int $offset = 0): array
-    {
+    public function findAll(
+        ?int $limit = null,
+        int $offset = 0
+    ): array {
         return $this->findBy([], null, $limit, $offset);
     }
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
-    public function findBy($criteria, ?array $orderBy = null, ?int $limit = null, int $offset = 0): array
-    {
+    public function findBy(
+        $criteria,
+        ?array $orderBy = null,
+        ?int $limit = null,
+        int $offset = 0
+    ): array {
         // Columns have to be checked to prevent unsanitized user input
         $metadata = $this->getMetadata();
 
@@ -171,10 +185,12 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
-    public function findOneBy(array $criteria, ?array $orderBy = null): ?array
-    {
+    public function findOneBy(
+        array $criteria,
+        ?array $orderBy = null
+    ): ?array {
         $result = $this->findBy($criteria, $orderBy, 1);
 
         if (empty($result)) {
@@ -186,8 +202,8 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
+     * @throws Exception
+     * @throws MappingException
      */
     public function findById(int $id): ?array
     {
@@ -258,12 +274,12 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param Expression|array<string, Expression|scalar|array<scalar>|null> $criteria
      *
-     * @return \Doctrine\DBAL\Query\Expression\CompositeExpression|string|null
+     * @return CompositeExpression|string|null
      *
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
+     * @throws Exception
+     * @throws MappingException
      */
     final protected function convertCriteriaToExpression(
         QueryBuilder $qb,
@@ -295,8 +311,10 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
      *
      * @return array<string, mixed>
      */
-    final protected function convertSubsetToPhpValues(DoctrineSchemaMetadataInterface $metadata, array $result): array
-    {
+    final protected function convertSubsetToPhpValues(
+        DoctrineSchemaMetadataInterface $metadata,
+        array $result
+    ): array {
         $narrowedResult = array_intersect_key($result, array_flip($metadata->getColumns()));
 
         return $metadata->convertToPHPValues($narrowedResult);
@@ -313,8 +331,11 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
         );
     }
 
-    private function buildConditionExpression(ExpressionVisitor $visitor, QueryBuilder $qb, Expression $value): string
-    {
+    private function buildConditionExpression(
+        ExpressionVisitor $visitor,
+        QueryBuilder $qb,
+        Expression $value
+    ): string {
         $sql = $visitor->dispatch($value);
 
         foreach ($visitor->getParameters() as $parameter) {
@@ -329,11 +350,14 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     /**
      * @param scalar|array<scalar>|null $value
      *
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
+     * @throws Exception
+     * @throws MappingException
      */
-    private function buildCondition(QueryBuilder $qb, string $column, $value): string
-    {
+    private function buildCondition(
+        QueryBuilder $qb,
+        string $column,
+        $value
+    ): string {
         $metadata = $this->getMetadata();
         $columnBinding = $metadata->getBindingTypeForColumn($column);
 
@@ -401,8 +425,10 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     /**
      * @param array<string, string>|null $orderBy Map of column names to "ASC" or "DESC", that will be used in SORT query
      */
-    final protected function applyOrderBy(QueryBuilder $qb, ?array $orderBy = []): void
-    {
+    final protected function applyOrderBy(
+        QueryBuilder $qb,
+        ?array $orderBy = []
+    ): void {
         $metadata = $this->getMetadata();
 
         foreach ($orderBy ?? [] as $column => $order) {
@@ -431,18 +457,23 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria
+     * @param Expression|array<string, Expression|scalar|array<scalar>|null> $criteria
      */
-    final protected function applyCriteria(QueryBuilder $qb, $criteria): void
-    {
+    final protected function applyCriteria(
+        QueryBuilder $qb,
+        $criteria
+    ): void {
         $expr = $this->convertCriteriaToExpression($qb, $criteria);
         if ($expr !== null) {
             $qb->andWhere($expr);
         }
     }
 
-    final protected function applyLimits(QueryBuilder $qb, ?int $limit, int $offset): void
-    {
+    final protected function applyLimits(
+        QueryBuilder $qb,
+        ?int $limit,
+        int $offset
+    ): void {
         if ($limit !== null) {
             $qb->setMaxResults($limit);
         }

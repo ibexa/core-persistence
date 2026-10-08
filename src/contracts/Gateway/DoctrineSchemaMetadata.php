@@ -9,7 +9,9 @@ declare(strict_types=1);
 namespace Ibexa\Contracts\CorePersistence\Gateway;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Ibexa\Contracts\CorePersistence\Exception\MappingException;
 use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingException;
 
@@ -26,7 +28,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     private Connection $connection;
 
     /**
-     * @var array<string, \Doctrine\DBAL\Types\Types::*|string>
+     * @var array<string, Types::*|string>
      */
     private array $columnToTypesMap;
 
@@ -39,17 +41,17 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     private int $inheritanceType = self::INHERITANCE_TYPE_NONE;
 
     /**
-     * @var array<string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface>
+     * @var array<string, DoctrineSchemaMetadataInterface>
      */
     private array $discriminatorMap = [];
 
     /**
-     * @var array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface>
+     * @var array<non-empty-string, DoctrineRelationshipInterface>
      */
     private array $propertyToRelationship = [];
 
     /**
-     * @var array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface>
+     * @var array<non-empty-string, DoctrineRelationshipInterface>
      */
     private array $columnToRelationship = [];
 
@@ -63,11 +65,11 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
 
     private ?TranslationDoctrineSchemaMetadataInterface $translationMetadata = null;
 
-    /** @var array<string,\Doctrine\DBAL\Types\Type> */
+    /** @var array<string,Type> */
     private array $columnTypeCache = [];
 
     /**
-     * @phpstan-param array<string, \Doctrine\DBAL\Types\Types::*|string> $columnToTypesMap
+     * @phpstan-param array<string, Types::*|string> $columnToTypesMap
      *
      * @param class-string|null $className class of objects to register metadata to in registry. Highly recommended
      *        to allow traversal of metadata when relations are used, for example. Null should be supplied only
@@ -108,7 +110,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function getColumnType(string $column): Type
     {
@@ -220,7 +222,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function convertToPHPValues(array $data): array
     {
@@ -234,7 +236,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function convertToDatabaseValues(array $data): array
     {
@@ -252,7 +254,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
      *
      * @return array<string, int>
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function getBindingTypesForData(array $data): array
     {
@@ -265,7 +267,7 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function getBindingTypeForColumn(string $columnName): int
     {
@@ -333,15 +335,17 @@ class DoctrineSchemaMetadata implements DoctrineSchemaMetadataInterface
     }
 
     /**
-     * @return array<string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface>
+     * @return array<string, DoctrineSchemaMetadataInterface>
      */
     public function getSubclasses(): array
     {
         return $this->discriminatorMap;
     }
 
-    public function addSubclass(string $discriminator, DoctrineSchemaMetadataInterface $doctrineSchemaMetadata): void
-    {
+    public function addSubclass(
+        string $discriminator,
+        DoctrineSchemaMetadataInterface $doctrineSchemaMetadata
+    ): void {
         $this->inheritanceType = self::INHERITANCE_TYPE_JOINED;
         if (isset($this->discriminatorMap[$discriminator])) {
             throw new MappingException(sprintf(

@@ -62,15 +62,17 @@ final class ExpressionVisitorTest extends IbexaKernelTestCase
     /**
      * @dataProvider provideForTraversingRelationships
      */
-    public function testTraversingRelationships(Comparison $expr, string $expectedResult): void
-    {
+    public function testTraversingRelationships(
+        Comparison $expr,
+        string $expectedResult
+    ): void {
         // Note: This assumes relationship tables are joined before being used.
         $result = $this->expressionVisitor->dispatch($expr);
         self::assertSame($expectedResult, $result);
     }
 
     /**
-     * @return iterable<array{\Doctrine\Common\Collections\Expr\Comparison, non-empty-string}>
+     * @return iterable<array{Comparison, non-empty-string}>
      */
     public static function provideForTraversingRelationships(): iterable
     {

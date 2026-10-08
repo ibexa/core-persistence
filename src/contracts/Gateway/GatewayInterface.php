@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace Ibexa\Contracts\CorePersistence\Gateway;
 
+use Doctrine\Common\Collections\Expr\Expression;
+use Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface;
+
 /**
  * @internal
  *
@@ -16,41 +19,52 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 interface GatewayInterface
 {
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     * @throws MappingExceptionInterface
      */
     public function getMetadata(): DoctrineSchemaMetadataInterface;
 
     public function countAll(): int;
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<\Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>> $criteria
+     * @param Expression|array<Expression|scalar|array<scalar>> $criteria
      */
     public function countBy($criteria): int;
 
     /**
      * @return array<int, TData> Array of results. Should be serializable.
      */
-    public function findAll(?int $limit = null, int $offset = 0): array;
+    public function findAll(
+        ?int $limit = null,
+        int $offset = 0
+    ): array;
 
     /**
-     * @param \Doctrine\Common\Collections\Expr\Expression|array<\Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria Map of column names to values that will be used as part of WHERE query
+     * @param Expression|array<Expression|scalar|array<scalar>|null> $criteria Map of column names to values that will be used as part of WHERE query
      * @param array<string, string>|null $orderBy Map of column names to "ASC" or "DESC", that will be used in SORT query
      *
      * @phpstan-param array<string, "ASC"|"DESC">|null $orderBy
      *
      * @return array<int, TData> Array of results. Should be serializable.
      */
-    public function findBy($criteria, ?array $orderBy = null, ?int $limit = null, int $offset = 0): array;
+    public function findBy(
+        $criteria,
+        ?array $orderBy = null,
+        ?int $limit = null,
+        int $offset = 0
+    ): array;
 
     /**
-     * @param array<string, \Doctrine\Common\Collections\Expr\Expression|scalar|array<scalar>|null> $criteria Map of column names to values that will be used as part of WHERE query
+     * @param array<string, Expression|scalar|array<scalar>|null> $criteria Map of column names to values that will be used as part of WHERE query
      * @param array<string, string>|null $orderBy Map of column names to "ASC" or "DESC", that will be used in SORT query
      *
      * @phpstan-param array<string, "ASC"|"DESC">|null $orderBy
      *
      * @return TData|null Single result or null. Should be serializable.
      */
-    public function findOneBy(array $criteria, ?array $orderBy = null): ?array;
+    public function findOneBy(
+        array $criteria,
+        ?array $orderBy = null
+    ): ?array;
 
     /**
      * @return TData|null Single result. Should be serializable.

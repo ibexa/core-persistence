@@ -24,21 +24,22 @@ use Ibexa\CorePersistence\Gateway\ExpressionVisitor;
 use Ibexa\CorePersistence\Gateway\Parameter;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use PHPUnit\Framework\Constraint\IsIdentical;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class ExpressionVisitorTest extends TestCase
 {
     private ExpressionVisitor $expressionVisitor;
 
-    /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var DoctrineSchemaMetadataRegistryInterface&MockObject */
     private DoctrineSchemaMetadataRegistryInterface $registry;
 
-    /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var DoctrineSchemaMetadataInterface&MockObject */
     private DoctrineSchemaMetadataInterface $schemaMetadata;
 
     private QueryBuilder $queryBuilder;
 
-    /** @var \Doctrine\DBAL\Connection&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var Connection&MockObject */
     private Connection $connection;
 
     protected function setUp(): void
@@ -227,7 +228,7 @@ final class ExpressionVisitorTest extends TestCase
     /**
      * @dataProvider provideForFieldFromInheritedRelationship
      *
-     * @phpstan-param array<\Ibexa\CorePersistence\Gateway\Parameter> $parameters
+     * @phpstan-param array<Parameter> $parameters
      */
     public function testFieldFromInheritedRelationship(
         Comparison $comparison,
@@ -267,9 +268,9 @@ final class ExpressionVisitorTest extends TestCase
 
     /**
      * @return iterable<array{
-     *     \Doctrine\Common\Collections\Expr\Comparison,
+     *     Comparison,
      *     non-empty-string,
-     *     array<\Ibexa\CorePersistence\Gateway\Parameter>,
+     *     array<Parameter>,
      * }>
      */
     public static function provideForFieldFromInheritedRelationship(): iterable
@@ -405,7 +406,7 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @return \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @return DoctrineSchemaMetadataInterface|MockObject
      */
     private function createRelationshipSchemaMetadata(string $tableName = 'relationship_table_name'): DoctrineSchemaMetadataInterface
     {
@@ -427,11 +428,13 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @param \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject $metadata
+     * @param DoctrineSchemaMetadataInterface&MockObject $metadata
      * @param array<string> $fields
      */
-    private function configureFieldInMetadata(DoctrineSchemaMetadataInterface $metadata, array $fields): void
-    {
+    private function configureFieldInMetadata(
+        DoctrineSchemaMetadataInterface $metadata,
+        array $fields
+    ): void {
         $metadata
             ->expects(self::atLeastOnce())
             ->method('hasColumn')

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Ibexa\CorePersistence\Gateway;
 
-use  Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface;
 use LogicException;
 
