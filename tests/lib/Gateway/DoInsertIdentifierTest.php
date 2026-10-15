@@ -15,12 +15,13 @@ use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterf
 use Ibexa\Tests\CorePersistence\Stub\IdentifierProbeGateway;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AbstractDoctrineDatabase::class)]
 final class DoInsertIdentifierTest extends TestCase
 {
-    /** @var \Doctrine\DBAL\Connection&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var Connection&MockObject */
     private Connection $connection;
 
     protected function setUp(): void
@@ -33,8 +34,8 @@ final class DoInsertIdentifierTest extends TestCase
 
     public function testReadsGeneratedIdentifierFromTheConnection(): void
     {
-        $this->connection->expects(self::once())->method('insert');
-        $this->connection->expects(self::once())->method('lastInsertId')->willReturn('42');
+        $this->connection->expects($this->once())->method('insert');
+        $this->connection->expects($this->once())->method('lastInsertId')->willReturn('42');
 
         $gateway = $this->createGateway(['id']);
 
@@ -43,8 +44,8 @@ final class DoInsertIdentifierTest extends TestCase
 
     public function testReturnsTheCallerSuppliedIdentifierInstead(): void
     {
-        $this->connection->expects(self::once())->method('insert');
-        $this->connection->expects(self::never())->method('lastInsertId');
+        $this->connection->expects($this->once())->method('insert');
+        $this->connection->expects($this->never())->method('lastInsertId');
 
         $gateway = $this->createGateway(['id']);
 
@@ -53,8 +54,8 @@ final class DoInsertIdentifierTest extends TestCase
 
     public function testRefusesACompositeKeyWithoutInsertingAnything(): void
     {
-        $this->connection->expects(self::never())->method('insert');
-        $this->connection->expects(self::never())->method('lastInsertId');
+        $this->connection->expects($this->never())->method('insert');
+        $this->connection->expects($this->never())->method('lastInsertId');
 
         $gateway = $this->createGateway(['left_id', 'right_id']);
 

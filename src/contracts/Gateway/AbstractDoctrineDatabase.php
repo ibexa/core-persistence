@@ -102,7 +102,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
      *
      * @param array<string, mixed> $data
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     protected function doInsertWithoutIdentity(array $data): void
     {
@@ -112,7 +112,7 @@ abstract class AbstractDoctrineDatabase implements GatewayInterface
     /**
      * @param array<string, mixed> $data
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     private function executeInsert(array $data): void
     {

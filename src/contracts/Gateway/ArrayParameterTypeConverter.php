@@ -12,7 +12,7 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
 
 /**
- * The inverse of {@see \Doctrine\DBAL\ArrayParameterType::toElementParameterType()}, which DBAL
+ * The inverse of {@see ArrayParameterType::toElementParameterType()}, which DBAL
  * does not provide.
  */
 final class ArrayParameterTypeConverter

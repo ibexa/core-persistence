@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Ibexa\Tests\CorePersistence\Stub;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Types\Types;
 use Ibexa\Contracts\CorePersistence\Gateway\AbstractDoctrineDatabase;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadata;
@@ -44,7 +45,7 @@ final class IdentifierProbeGateway extends AbstractDoctrineDatabase
     /**
      * @param array<string, mixed> $data
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function insert(array $data): int
     {
