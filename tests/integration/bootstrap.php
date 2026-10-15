@@ -6,10 +6,9 @@
  */
 declare(strict_types=1);
 
-use Ibexa\Bundle\RepositoryInstaller\Bootstrapper\DoctrineMigrationsSchemaHook;
 use Ibexa\Contracts\Test\Core\Bootstrapper\BaseFixtureHook;
 use Ibexa\Contracts\Test\Core\Bootstrapper\Bootstrapper;
-use Ibexa\Contracts\Test\Core\Bootstrapper\DatabaseSchemaHook;
+use Ibexa\Contracts\Test\Core\Bootstrapper\SchemaInstallPath;
 
 require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
@@ -21,11 +20,8 @@ chdir(dirname(__DIR__, 2));
 // schema hook and the baseline fixture would populate the same tables again, so both are off.
 // This package owns no tables, but its suite still installs everything it depends on - which is
 // what catches a dependency whose migrations drift from its schema.yaml.
-$options = [];
-if (getenv('IBEXA_TEST_SCHEMA_BUILDER_EVENT_ENABLED') === '0') {
-    $options[DatabaseSchemaHook::class] = [DatabaseSchemaHook::OPTION_LOAD_SCHEMA => false];
-    $options[DoctrineMigrationsSchemaHook::class] = [DoctrineMigrationsSchemaHook::OPTION_INSTALL_SCHEMA => true];
-    $options[BaseFixtureHook::class] = [BaseFixtureHook::OPTION_LOAD_BASE_FIXTURE => false];
-}
+$schemaBuilderEventEnabled = getenv('IBEXA_TEST_SCHEMA_BUILDER_EVENT_ENABLED') !== '0';
 
-(new Bootstrapper())->bootstrap(null, $options);
+(new Bootstrapper())->bootstrap(null, SchemaInstallPath::getBootstrapperOptions($schemaBuilderEventEnabled) + [
+    BaseFixtureHook::class => [BaseFixtureHook::OPTION_LOAD_BASE_FIXTURE => $schemaBuilderEventEnabled],
+]);
