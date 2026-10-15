@@ -27,21 +27,22 @@ use Ibexa\CorePersistence\Gateway\Parameter;
 use Ibexa\CorePersistence\Gateway\RelationshipTypeStrategyRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Constraint\IsIdentical;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class ExpressionVisitorTest extends TestCase
 {
     private ExpressionVisitor $expressionVisitor;
 
-    /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var DoctrineSchemaMetadataRegistryInterface&MockObject */
     private DoctrineSchemaMetadataRegistryInterface $registry;
 
-    /** @var \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var DoctrineSchemaMetadataInterface&MockObject */
     private DoctrineSchemaMetadataInterface $schemaMetadata;
 
     private QueryBuilder $queryBuilder;
 
-    /** @var \Doctrine\DBAL\Connection&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var Connection&MockObject */
     private Connection $connection;
 
     protected function setUp(): void
@@ -158,7 +159,7 @@ final class ExpressionVisitorTest extends TestCase
         /** @var \Exception $exception */
         $exception = self::createStub(RuntimeMappingExceptionInterface::class);
         $this->schemaMetadata
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getRelationshipByForeignProperty')
             ->with('relationship_1')
             ->willThrowException($exception);
@@ -175,7 +176,7 @@ final class ExpressionVisitorTest extends TestCase
         $doctrineRelationship = $this->createMock(DoctrineRelationshipInterface::class);
         $doctrineRelationship->method('getRelationshipClass')->willReturn($relationshipClass);
         $this->schemaMetadata
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getRelationshipByForeignProperty')
             ->with('relationship_1')
             ->willReturn($doctrineRelationship);
@@ -183,7 +184,7 @@ final class ExpressionVisitorTest extends TestCase
         $relationshipMetadata = $this->createRelationshipSchemaMetadata();
 
         $this->registry
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getMetadata')
             ->with(self::identicalTo($relationshipClass))
             ->willReturn($relationshipMetadata);
@@ -201,7 +202,7 @@ final class ExpressionVisitorTest extends TestCase
     public function testFieldFromSubSelectRelationship(): void
     {
         $this->connection
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('createQueryBuilder')
             ->willReturnCallback(fn (): QueryBuilder => new QueryBuilder($this->connection));
 
@@ -215,7 +216,7 @@ final class ExpressionVisitorTest extends TestCase
         );
 
         $this->schemaMetadata
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getRelationshipByForeignProperty')
             ->with('relationship_1')
             ->willReturn($doctrineRelationship);
@@ -223,7 +224,7 @@ final class ExpressionVisitorTest extends TestCase
         $relationshipMetadata = $this->createRelationshipSchemaMetadata();
 
         $this->registry
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getMetadata')
             ->with($relationshipClass)
             ->willReturn($relationshipMetadata);
@@ -237,7 +238,7 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @phpstan-param array<\Ibexa\CorePersistence\Gateway\Parameter> $parameters
+     * @phpstan-param array<Parameter> $parameters
      */
     #[DataProvider('provideForFieldFromInheritedRelationship')]
     public function testFieldFromInheritedRelationship(
@@ -254,7 +255,7 @@ final class ExpressionVisitorTest extends TestCase
         );
 
         $this->schemaMetadata
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getRelationshipByForeignProperty')
             ->with('relationship_1')
             ->willReturn($doctrineRelationship);
@@ -262,7 +263,7 @@ final class ExpressionVisitorTest extends TestCase
         $relationshipMetadata = $this->createRelationshipSchemaMetadata();
 
         $this->registry
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getMetadata')
             ->with($relationshipClass)
             ->willReturn($relationshipMetadata);
@@ -278,9 +279,9 @@ final class ExpressionVisitorTest extends TestCase
 
     /**
      * @return iterable<array{
-     *     \Doctrine\Common\Collections\Expr\Comparison,
+     *     Comparison,
      *     non-empty-string,
-     *     array<\Ibexa\CorePersistence\Gateway\Parameter>,
+     *     array<Parameter>,
      * }>
      */
     public static function provideForFieldFromInheritedRelationship(): iterable
@@ -335,7 +336,7 @@ final class ExpressionVisitorTest extends TestCase
         );
 
         $this->schemaMetadata
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getRelationshipByForeignProperty')
             ->with('relationship_1')
             ->willReturn($doctrineRelationship1);
@@ -355,13 +356,13 @@ final class ExpressionVisitorTest extends TestCase
         $relationshipMetadata2 = $this->createRelationshipSchemaMetadata('relationship_2_table_name');
 
         $relationshipMetadata1
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getRelationshipByForeignProperty')
             ->with('relationship_2')
             ->willReturn($doctrineRelationship2);
 
         $this->registry
-            ->expects(self::exactly(2))
+            ->expects($this->exactly(2))
             ->method('getMetadata')
             ->with(
                 self::logicalOr(
@@ -391,14 +392,14 @@ final class ExpressionVisitorTest extends TestCase
     public function testFieldFromSubclass(): void
     {
         $this->schemaMetadata
-            ->expects(self::exactly(2))
+            ->expects($this->exactly(2))
             ->method('isInheritedColumn')
             ->with('inherited_field')
             ->willReturn(true);
 
         $inheritanceMetadata = $this->createMock(DoctrineSchemaMetadataInterface::class);
         $this->schemaMetadata
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getInheritanceMetadataWithColumn')
             ->with('inherited_field')
             ->willReturn($inheritanceMetadata);
@@ -412,7 +413,7 @@ final class ExpressionVisitorTest extends TestCase
             ->willReturn(ArrayParameterType::STRING);
 
         $inheritanceMetadata
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('getTableName')
             ->willReturn('inheritance_table');
 
@@ -424,7 +425,7 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @return \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @return DoctrineSchemaMetadataInterface|MockObject
      */
     private function createRelationshipSchemaMetadata(string $tableName = 'relationship_table_name'): DoctrineSchemaMetadataInterface
     {
@@ -454,13 +455,15 @@ final class ExpressionVisitorTest extends TestCase
     }
 
     /**
-     * @param \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface&\PHPUnit\Framework\MockObject\MockObject $metadata
+     * @param DoctrineSchemaMetadataInterface&MockObject $metadata
      * @param list<string> $fields
      */
-    private function configureFieldInMetadata(DoctrineSchemaMetadataInterface $metadata, array $fields): void
-    {
+    private function configureFieldInMetadata(
+        DoctrineSchemaMetadataInterface $metadata,
+        array $fields
+    ): void {
         $metadata
-            ->expects(self::atLeastOnce())
+            ->expects($this->atLeastOnce())
             ->method('hasColumn')
             ->with(self::logicalOr(
                 ...array_map(static fn (string $fieldName): IsIdentical => self::identicalTo($fieldName), $fields),

@@ -10,8 +10,13 @@ namespace Ibexa\Contracts\CorePersistence\Gateway;
 
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\Persistence\Mapping\ClassMetadata;
+use Ibexa\Contracts\CorePersistence\Exception\MappingException;
+use Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface;
+use Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface;
 
 /**
  * @internal
@@ -20,7 +25,7 @@ use Doctrine\DBAL\Types\Type;
  *
  * Conceptually based on Doctrine's ClassMetadata, but also acts as type converter.
  *
- * @see \Doctrine\Persistence\Mapping\ClassMetadata
+ * @see ClassMetadata
  */
 interface DoctrineSchemaMetadataInterface
 {
@@ -37,7 +42,7 @@ interface DoctrineSchemaMetadataInterface
     public function getTableName(): string;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
     public function getColumnType(string $column): Type;
 
@@ -49,7 +54,7 @@ interface DoctrineSchemaMetadataInterface
     public function hasColumn(string $column): bool;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
     public function getColumn(string $column): string;
 
@@ -61,7 +66,7 @@ interface DoctrineSchemaMetadataInterface
      * Similarly to Doctrine\DBAL\Types\Type::convertToPHPValue, converts database representation to PHP
      * representation.
      *
-     * @see \Doctrine\DBAL\Types\Type::convertToPHPValue
+     * @see Type::convertToPHPValue
      *
      * @param array<string, mixed> $data
      *
@@ -73,27 +78,27 @@ interface DoctrineSchemaMetadataInterface
      * Similarly to Doctrine\DBAL\Types\Type::convertToDatabaseValue, converts PHP representation to database
      * representation.
      *
-     * @see \Doctrine\DBAL\Types\Type::convertToDatabaseValue
+     * @see Type::convertToDatabaseValue
      *
      * @param array<string, mixed> $data
      *
      * @return array<string, mixed>
      *
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
     public function convertToDatabaseValues(array $data): array;
 
     /**
      * @param array<string, mixed> $data
      *
-     * @return array<string, \Doctrine\DBAL\ParameterType>
+     * @return array<string, ParameterType>
      *
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
     public function getBindingTypesForData(array $data): array;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingException
+     * @throws MappingException
      */
     public function getIdentifierColumn(): string;
 
@@ -103,15 +108,15 @@ interface DoctrineSchemaMetadataInterface
     public function getIdentifierColumns(): array;
 
     /**
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws Exception
+     * @throws RuntimeMappingExceptionInterface
      */
     public function getBindingTypeForColumn(string $columnName): ParameterType;
 
     public function getArrayBindingTypeForColumn(string $columnName): ArrayParameterType;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     * @throws MappingExceptionInterface
      */
     public function setParentMetadata(self $parentMetadata): void;
 
@@ -120,48 +125,51 @@ interface DoctrineSchemaMetadataInterface
     public function getSubclassByDiscriminator(string $discriminator): self;
 
     /**
-     * @return array<string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface>
+     * @return array<string, DoctrineSchemaMetadataInterface>
      */
     public function getSubclasses(): array;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     * @throws MappingExceptionInterface
      */
-    public function addSubclass(string $discriminator, self $doctrineSchemaMetadata): void;
+    public function addSubclass(
+        string $discriminator,
+        self $doctrineSchemaMetadata
+    ): void;
 
     public function isInheritanceTypeJoined(): bool;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     * @throws MappingExceptionInterface
      */
     public function setTranslationSchemaMetadata(TranslationDoctrineSchemaMetadataInterface $translationMetadata): void;
 
     public function hasTranslationSchemaMetadata(): bool;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
     public function getTranslationSchemaMetadata(): TranslationDoctrineSchemaMetadataInterface;
 
     public function isTranslatedColumn(string $column): bool;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\MappingExceptionInterface
+     * @throws MappingExceptionInterface
      */
     public function addRelationship(DoctrineRelationshipInterface $relationship): void;
 
     /**
-     * @return array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineRelationshipInterface>
+     * @return array<non-empty-string, DoctrineRelationshipInterface>
      */
     public function getRelationships(): array;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
     public function getRelationshipByForeignProperty(string $foreignProperty): DoctrineRelationshipInterface;
 
     /**
-     * @throws \Ibexa\Contracts\CorePersistence\Exception\RuntimeMappingExceptionInterface
+     * @throws RuntimeMappingExceptionInterface
      */
     public function getRelationshipByForeignKeyColumn(string $foreignColumn): DoctrineRelationshipInterface;
 }

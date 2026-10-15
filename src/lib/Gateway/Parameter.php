@@ -18,7 +18,7 @@ final class Parameter
 {
     private string $name;
 
-    private ArrayParameterType|ParameterType $type;
+    private ArrayParameterType | ParameterType $type;
 
     /** @var mixed */
     private $value;
@@ -26,8 +26,11 @@ final class Parameter
     /**
      * @param mixed $value
      */
-    public function __construct(string $name, $value, ArrayParameterType|ParameterType $type)
-    {
+    public function __construct(
+        string $name,
+        $value,
+        ArrayParameterType | ParameterType $type
+    ) {
         $this->name = $name;
         $this->value = $value;
         $this->type = $type;
@@ -54,7 +57,7 @@ final class Parameter
         return $this->value;
     }
 
-    public function getType(): ArrayParameterType|ParameterType
+    public function getType(): ArrayParameterType | ParameterType
     {
         return $this->type;
     }
