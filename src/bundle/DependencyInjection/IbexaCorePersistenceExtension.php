@@ -21,8 +21,10 @@ final class IbexaCorePersistenceExtension extends Extension
     /**
      * @param array<string, mixed> $configs
      */
-    public function load(array $configs, ContainerBuilder $container): void
-    {
+    public function load(
+        array $configs,
+        ContainerBuilder $container
+    ): void {
         $loader = new YamlFileLoader(
             $container,
             new FileLocator(__DIR__ . '/../Resources/config')

@@ -11,29 +11,30 @@ namespace Ibexa\CorePersistence\Gateway;
 use Ibexa\Bundle\CorePersistence\DependencyInjection\IbexaCorePersistenceExtension;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataRegistryInterface;
+use Ibexa\Contracts\CorePersistence\Gateway\GatewayInterface;
 use Ibexa\Contracts\CorePersistence\Gateway\TranslationDoctrineSchemaMetadataInterface;
 use LogicException;
 
 final class DoctrineSchemaMetadataRegistry implements DoctrineSchemaMetadataRegistryInterface
 {
-    /** @var array<class-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface> */
+    /** @var array<class-string, DoctrineSchemaMetadataInterface> */
     private array $metadata;
 
-    /** @var array<class-string, \Ibexa\Contracts\CorePersistence\Gateway\TranslationDoctrineSchemaMetadataInterface> */
+    /** @var array<class-string, TranslationDoctrineSchemaMetadataInterface> */
     private array $translationMetadata;
 
-    /** @var array<non-empty-string, \Ibexa\Contracts\CorePersistence\Gateway\DoctrineSchemaMetadataInterface> */
+    /** @var array<non-empty-string, DoctrineSchemaMetadataInterface> */
     private array $tableToMetadata;
 
     /**
-     * @var iterable<\Ibexa\Contracts\CorePersistence\Gateway\GatewayInterface<array<mixed>>>
+     * @var iterable<GatewayInterface<array<mixed>>>
      */
     private iterable $gateways;
 
     private bool $initialized = false;
 
     /**
-     * @param iterable<\Ibexa\Contracts\CorePersistence\Gateway\GatewayInterface<array<mixed>>> $gateways
+     * @param iterable<GatewayInterface<array<mixed>>> $gateways
      */
     public function __construct(iterable $gateways)
     {
