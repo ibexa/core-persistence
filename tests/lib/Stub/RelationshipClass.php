@@ -8,6 +8,4 @@ declare(strict_types=1);
 
 namespace Ibexa\Tests\CorePersistence\Stub;
 
-final class RelationshipClass
-{
-}
+final class RelationshipClass {}
