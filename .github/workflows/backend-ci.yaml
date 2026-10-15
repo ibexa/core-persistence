@@ -93,6 +93,9 @@ jobs:
             -   name: Run test suite
                 run: composer run-script --timeout=600 test
 
+            -   name: Run SQLite integration test suite
+                run: composer run-script --timeout=600 test-integration
+
     integration-tests-postgres:
         name: PostgreSQL integration tests
         needs: tests
