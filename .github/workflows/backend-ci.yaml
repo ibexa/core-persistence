@@ -33,7 +33,7 @@ jobs:
                     composer run-script check-cs -- --format=checkstyle | cs2pr
 
     tests:
-        name: Unit tests & SQLite integration tests
+        name: Unit tests & SQLite integration tests (schema_builder_event=${{ matrix.schema_builder_event }})
         runs-on: "ubuntu-26.04"
         timeout-minutes: 15
 
@@ -44,6 +44,9 @@ jobs:
                     - '7.4'
                     - '8.3'
                     - '8.4'
+                schema_builder_event:
+                    - true
+                    - false
 
         steps:
             -   uses: actions/checkout@v7
@@ -67,9 +70,11 @@ jobs:
 
             -   name: Run integration test suite
                 run: composer run-script test-integration
+                env:
+                    IBEXA_TEST_SCHEMA_BUILDER_EVENT_ENABLED: ${{ matrix.schema_builder_event && '1' || '0' }}
 
     integration-tests-postgres:
-        name: PostgreSQL integration tests
+        name: PostgreSQL integration tests (schema_builder_event=${{ matrix.schema_builder_event }})
         needs: tests
         services:
             postgres:
@@ -98,6 +103,9 @@ jobs:
                 image:
                     - 'postgres:14'
                     - 'postgres:18'
+                schema_builder_event:
+                    - true
+                    - false
 
         steps:
             -   uses: actions/checkout@v7
@@ -117,9 +125,10 @@ jobs:
                 run: composer run-script test-integration
                 env:
                     DATABASE_URL: "pgsql://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/testdb?server_version=10"
+                    IBEXA_TEST_SCHEMA_BUILDER_EVENT_ENABLED: ${{ matrix.schema_builder_event && '1' || '0' }}
 
     integration-tests-mysql:
-        name: MySQL integration tests
+        name: MySQL integration tests (schema_builder_event=${{ matrix.schema_builder_event }})
         needs: tests
         services:
             mysql:
@@ -150,6 +159,9 @@ jobs:
                 image:
                     - 'mysql:8.0'
                     - 'mysql:8.4'
+                schema_builder_event:
+                    - true
+                    - false
 
         steps:
             -   uses: actions/checkout@v7
@@ -169,3 +181,4 @@ jobs:
                 run: composer run-script test-integration
                 env:
                     DATABASE_URL: "mysql://mysql:mysql@127.0.0.1:${{ job.services.mysql.ports[3306] }}/testdb"
+                    IBEXA_TEST_SCHEMA_BUILDER_EVENT_ENABLED: ${{ matrix.schema_builder_event && '1' || '0' }}
