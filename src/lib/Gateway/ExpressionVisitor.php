@@ -88,10 +88,8 @@ final class ExpressionVisitor extends BaseExpressionVisitor
 
     /**
      * @throws RuntimeMappingExceptionInterface
-     *
-     * @return mixed
      */
-    public function walkComparison(Comparison $comparison)
+    public function walkComparison(Comparison $comparison): string
     {
         $column = $comparison->getField();
 
@@ -130,10 +128,7 @@ final class ExpressionVisitor extends BaseExpressionVisitor
         return $this->handleComparison($comparison, $parameter, $fullColumnName, $placeholder);
     }
 
-    /**
-     * @return mixed
-     */
-    public function walkValue(Value $value)
+    public function walkValue(Value $value): mixed
     {
         return $value->getValue();
     }
